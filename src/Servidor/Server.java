@@ -5,11 +5,7 @@ import java.lang.ClassNotFoundException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-/**
- * This class implements java Socket server
- * @author pankaj
- *
- */
+
 public class Server {
     public static void main(String[] args) throws IOException {
     ServerSocket ss = new ServerSocket(4999);
