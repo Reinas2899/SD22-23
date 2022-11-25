@@ -7,11 +7,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-/**
- * This class implements java socket client
- * @author pankaj
- *
- */
+
 public class Client {
 
     public static void main(String[] args) throws IOException {
