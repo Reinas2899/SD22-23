@@ -1,3 +1,10 @@
+package Entidades;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+
 public class Trotinete{
 
 String idTrotinete;
@@ -56,7 +63,7 @@ Localizacao localizacao;
 
     @Override
     public String toString() {
-        return "Trotinete{" +
+        return "Entidades.Trotinete{" +
                 "idTrotinete='" + idTrotinete + '\'' +
                 ", reservada=" + reservada +
                 ", velocidade=" + velocidade +
@@ -64,6 +71,32 @@ Localizacao localizacao;
                 ", localizacao=" + localizacao +
                 '}';
     }
+
+
+    // @TODO
+    public void serialize (DataOutputStream out) throws IOException {
+        out.writeUTF(idTrotinete);
+        out.writeBoolean(reservada);
+        out.writeInt(velocidade);
+        out.writeChar(direcao);
+        localizacao.serialize(out);
+
+        out.flush();
+    }
+
+    // @TODO
+    public static Trotinete deserialize (DataInputStream in) throws IOException {
+        String idTrotinete = in.readUTF();
+        boolean reservada = in.readBoolean();
+        int velocidade = in.readInt();
+        char direcao = in.readChar();
+        Localizacao localizacao = new Localizacao(in.readInt(), in.readInt());
+
+        return new Trotinete(idTrotinete,reservada , velocidade, direcao, localizacao);
+
+
+    }
+
 
 
 }

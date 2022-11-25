@@ -1,3 +1,9 @@
+package Entidades;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 public class Utilizador {
 
     String id;
@@ -67,7 +73,7 @@ public class Utilizador {
 
     @Override
     public String toString() {
-        return "Utilizador{" +
+        return "Entidades.Utilizador{" +
                 "id='" + id + '\'' +
                 ", username='" + username + '\'' +
                 ", nome='" + nome + '\'' +
@@ -76,4 +82,33 @@ public class Utilizador {
                 ", localizacao=" + localizacao +
                 '}';
     }
+
+
+
+    public void serialize (DataOutputStream out) throws IOException {
+        out.writeUTF(id);
+        out.writeUTF(username);
+        out.writeUTF(nome);
+
+        out.writeInt(creditos);
+        out.writeUTF(password);
+        localizacao.serialize(out);
+
+        out.flush();
+    }
+
+    // @TODO
+    public static Utilizador deserialize (DataInputStream in) throws IOException {
+        String id = in.readUTF();
+        String username = in.readUTF();
+        String nome = in.readUTF();
+        int creditos = in.readInt();
+        String password = in.readUTF();
+        Localizacao localizacao = new Localizacao(in.readInt(), in.readInt());
+
+        return new Utilizador(id,username , nome, creditos,password, localizacao );
+
+
+    }
+
 }
