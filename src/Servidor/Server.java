@@ -3,9 +3,8 @@ package Servidor;
 import Entidades.Localizacao;
 import Entidades.Reservation;
 import Entidades.Trotinete;
-
+import Servidor.Message.*;
 import java.io.*;
-import java.lang.ClassNotFoundException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
@@ -29,15 +28,12 @@ public class Server {
         Object message = packet.getMessage();
 
         switch (packet.getType()){
-            case SUCCESS_RESPONSE:
-                if(message instanceof SuccessResponse response)
-                    //print message
-                    ;
             case REGISTER:
                 if(message instanceof UserMessage registerUser)
                     //register
                     //send response
                     ;
+                break;
             case CONNECTION:
                 if(message instanceof UserMessage connectUser)
                     //Verify if id exists
@@ -45,26 +41,34 @@ public class Server {
                     //log user in
                     //send response
                     ;
+                break;
             case DESCONNECTION:
                 //log user out
                 ;
+                break;
             case NEARBY_SCOOTERS:
                 if(message instanceof Localizacao userLocation)
                     //check scooters close by
                     //make a list of them
                     //send list to user
                     ;
+                break;
             case NEARBY_REWARDS:
                 if(message instanceof Localizacao userLocation)
                     //check rewards close by
                     //make a list of them
                     //send list to user
                     ;
+                break;
             case START_TRIP:
                 if(message instanceof Localizacao userLocation)
                     //check timestamp and save in reservation
                     //save starting location
                     ;
+                break;
+            case END_TRIP:
+                //TODO
+                break;
         }
 
         Trotinete t = Trotinete.deserialize(in);
@@ -83,7 +87,7 @@ public class Server {
 
     public void Handler(Message message){
 
-        if (message.getType()==MessageType.REGISTER){
+        if (message.getType()== MessageType.REGISTER){
             try {
                 FileWriter writer = new FileWriter(userFileName);
                 writer.write(message.toString());

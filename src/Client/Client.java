@@ -4,31 +4,58 @@ package Client;
 
 import Entidades.Localizacao;
 import Entidades.Trotinete;
+import Servidor.Message.*;
 
 import java.io.*;
-import java.net.InetAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 
 
 public class Client {
 
 
     public static void main(String[] args) throws IOException {
-        Localizacao l = new Localizacao(0,0);
-        Trotinete t = new Trotinete("1",false,10,'N',l);
+        Localizacao l = new Localizacao(0, 0);
+        Trotinete t = new Trotinete("1", false, 10, 'N', l);
 
-    Socket s = new Socket("localhost",4999);
-    DataOutputStream out = new DataOutputStream(s.getOutputStream());
-    t.serialize(out);
+        Socket s = new Socket("localhost", 4999);
+        DataOutputStream out = new DataOutputStream(s.getOutputStream());
+        t.serialize(out);
 
-    PrintWriter pr = new PrintWriter(s.getOutputStream());
-    pr.println("hello");
-    out.flush();
-    InputStreamReader in = new InputStreamReader(s.getInputStream());
-    BufferedReader bf= new BufferedReader(in);
+        PrintWriter pr = new PrintWriter(s.getOutputStream());
+        pr.println("hello");
+        out.flush();
 
-    String str = bf.readLine();
-        System.out.println("Server:"+str);
+        //COISAS QUE VÊM DO SERVER
+        DataInputStream in = new DataInputStream(s.getInputStream());
+        Message packet = Message.deserialize(in);
+        Object message = packet.getMessage();
+
+        switch (packet.getType()) {
+            case SUCCESS_RESPONSE:
+                if (message instanceof SuccessResponse response)
+                    //print message and deal with the success flag
+                    ;
+                break;
+            case LIST_SCOOTERS:
+                if (message instanceof Localizacao userLocation)
+                    //check scooters close by
+                    //make a list of them
+                    //send list to user
+                    ;
+                break;
+            case LIST_REWARDS:
+                if (message instanceof Localizacao userLocation)
+                    //check rewards close by
+                    //make a list of them
+                    //send list to user
+                    ;
+                break;
+            case SCOOTER_RESERVATION_RESPONSE:
+                //TODO
+                break;
+            case COST_REWARD:
+                //TODO;
+                break;
+        }
     }
 }
