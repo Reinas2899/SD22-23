@@ -12,6 +12,7 @@ public class Localizacao {
         this.x = x;
         this.y = y;
     }
+    public  Localizacao() { }
 
     public void setX(int x) {
         this.x = x;
@@ -43,9 +44,6 @@ public class Localizacao {
     public static Localizacao deserialize (DataInputStream in) throws IOException {
         int x = in.readInt();
         int y = in.readInt();
-
-
-
 
         Localizacao localizacao = new Localizacao(x,y);
         return localizacao;
