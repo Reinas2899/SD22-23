@@ -23,7 +23,7 @@ public class Client {
         DataOutputStream out = new DataOutputStream(s.getOutputStream());
         Menu.menu(out);
 
-        //COISAS QUE VÊM DO SERVER
+       /* //COISAS QUE VÊM DO SERVER
         DataInputStream in = new DataInputStream(s.getInputStream());
         Message packet = Message.deserialize(in);
         Object message = packet.getMessage();
@@ -54,6 +54,6 @@ public class Client {
             case COST_REWARD:
                 //TODO;
                 break;
-        }
+        }*/
     }
 }

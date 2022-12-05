@@ -2,10 +2,12 @@ package Client;
 
 
 
+import Entidades.Utilizador;
 import Servidor.Message.Message;
 
 import java.io.*;
 import java.time.LocalDateTime;
+import java.util.Random;
 import java.util.Scanner;
 
 import static Servidor.Message.MessageType.*;
@@ -29,7 +31,13 @@ public class Menu {
             String user = ler.nextLine();
             System.out.println("Insira a password :");
             String pass = ler.nextLine();
-            Message m = new Message(REGISTER, );
+            System.out.println("Insira o nome :");
+            String nome = ler.nextLine();
+            Random random = new Random();
+            Integer id = random.nextInt();
+            Message m = new Message(REGISTER, new Utilizador(id.toString(),user,nome,pass));
+            System.out.println("aqui");
+            System.out.println(m.toString());
             m.serialize(out);
 
 

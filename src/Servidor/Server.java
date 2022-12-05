@@ -33,7 +33,6 @@ public class Server {
         DataInputStream in = new DataInputStream(s.getInputStream());
         DataOutputStream out = new DataOutputStream(s.getOutputStream());
 
-
         Message packet = Message.deserialize(in);
         Object message = packet.getMessage();
         System.out.println(message.toString());
@@ -44,7 +43,27 @@ public class Server {
                     //Este user vem sem localização associada
                     //register
                     //send response
-                    ;
+                    if (existsUser(((Utilizador) message).getUsername(), ((Utilizador) message).getPassword())) {
+
+                        try {
+                            out.writeUTF("Utilizador já existe!");
+                            out.flush();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                    } else {
+
+                        File file = new File("registos.txt");
+                        FileWriter fr = new FileWriter(file, true);
+                        BufferedWriter br = new BufferedWriter(fr);
+                        PrintWriter pr = new PrintWriter(br);
+                        pr.println(((Utilizador) message).toStringAccountInfo());
+                        pr.close();
+                        br.close();
+                        fr.close();
+
+                    }
                 break;
             case CONNECTION:
                 if(message instanceof Utilizador connectUser)
@@ -85,12 +104,6 @@ public class Server {
                 //TODO
                 break;
         }
-
-        Trotinete t = Trotinete.deserialize(in);
-        System.out.println(t.toString());
-
-        Message m = Message.deserialize(in);
-        handler(m, out);
     }
 
 
@@ -159,4 +172,5 @@ public class Server {
             }
 
         }
+
 

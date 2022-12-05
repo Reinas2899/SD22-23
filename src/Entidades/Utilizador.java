@@ -100,14 +100,16 @@ public class Utilizador {
 
     @Override
     public String toString() {
-        return "Entidades.Utilizador{" +
-                "id='" + id + '\'' +
-                ", username='" + username + '\'' +
-                ", nome='" + nome + '\'' +
-                ", creditos=" + creditos +
-                ", password='" + password + '\'' +
-                ", localizacao=" + localizacao +
-                '}';
+        return "id=" + id +
+                ",username=" + username +
+                ",nome=" + nome +
+                ",creditos=" + creditos +
+                ",password=" + password +
+                ",localizacao=" + localizacao;
+    }
+
+    public String toStringAccountInfo() {
+        return id + "," + username +"," + nome +"," + password;
     }
 
 

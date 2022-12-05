@@ -11,6 +11,14 @@ public class Message {
     private MessageType type;
     private Object message;
 
+    @Override
+    public String toString() {
+        return "Message{" +
+                "type=" + type.toString() +
+                ", message=" + message.toString() +
+                '}';
+    }
+
     public Message(MessageType type, Object message){
         this.type=type;
         this.message = message;
@@ -28,7 +36,7 @@ public class Message {
         Object message = new Object();
         switch (type) {
             case SUCCESS_RESPONSE -> message = SuccessResponse.deserialize(in);
-            case REGISTER -> message = Utilizador.deserialize(in);
+            case REGISTER -> message = Utilizador.deserializeAccountInfo(in);
             case CONNECTION -> message = Utilizador.deserialize(in);
             case NEARBY_SCOOTERS, NEARBY_REWARDS, START_TRIP -> message = Localizacao.deserialize(in);
             case LIST_SCOOTERS, LIST_REWARDS -> message = ListObject.deserialize(in);
