@@ -34,7 +34,7 @@ public class Menu {
             System.out.println("Insira o nome :");
             String nome = ler.nextLine();
             Random random = new Random();
-            Integer id = random.nextInt();
+            Integer id = random.nextInt(1,1000);
             Message m = new Message(REGISTER, new Utilizador(id.toString(),user,nome,pass));
             System.out.println("aqui");
             System.out.println(m.toString());

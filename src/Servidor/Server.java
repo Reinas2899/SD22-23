@@ -45,30 +45,7 @@ public class Server {
                         switch (packet.getType()) {
                             case REGISTER:
                                 if (message instanceof Utilizador registerUser)
-                                    //Este user vem sem localização associada
-                                    //register
-                                    //send response
-                                    if (existsUser(((Utilizador) message).getUsername(), ((Utilizador) message).getPassword())) {
-
-                                        try {
-                                            out.writeUTF("Utilizador já existe!");
-                                            out.flush();
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
-                                        }
-
-                                    } else {
-
-                                        File file = new File("registos.txt");
-                                        FileWriter fr = new FileWriter(file, true);
-                                        BufferedWriter br = new BufferedWriter(fr);
-                                        PrintWriter pr = new PrintWriter(br);
-                                        pr.println(((Utilizador) message).toStringAccountInfo());
-                                        pr.close();
-                                        br.close();
-                                        fr.close();
-
-                                    }
+                                    registaUser(message,out);
                                 break;
                             case CONNECTION:
                                 if (message instanceof Utilizador connectUser)
@@ -182,6 +159,31 @@ public class Server {
                     //handle this
                 }
                 return false;
+            }
+
+            public static void registaUser(Object message, DataOutputStream out) throws IOException{
+                if (existsUser(((Utilizador) message).getUsername(), ((Utilizador) message).getPassword())) {
+
+                    try {
+                        out.writeUTF("Utilizador já existe!");
+                        out.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                } else {
+
+                    File file = new File("registos.txt");
+                    FileWriter fr = new FileWriter(file, true);
+                    BufferedWriter br = new BufferedWriter(fr);
+                    PrintWriter pr = new PrintWriter(br);
+                    pr.println(((Utilizador) message).toStringAccountInfo());
+                    pr.close();
+                    br.close();
+                    fr.close();
+
+                }
+
             }
 
         }
