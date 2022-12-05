@@ -28,81 +28,94 @@ public class Server {
 
     public static void main(String[] args) throws IOException {
         ServerSocket ss = new ServerSocket(4999);
-        Socket s = ss.accept();
-        System.out.println("Client Connected");
-        DataInputStream in = new DataInputStream(s.getInputStream());
-        DataOutputStream out = new DataOutputStream(s.getOutputStream());
+        while (true) {
+            Socket s = ss.accept();
+            System.out.println("Client Connected");
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        DataInputStream in = new DataInputStream(s.getInputStream());
+                        DataOutputStream out = new DataOutputStream(s.getOutputStream());
 
-        Message packet = Message.deserialize(in);
-        Object message = packet.getMessage();
-        System.out.println(message.toString());
+                        Message packet = Message.deserialize(in);
+                        Object message = packet.getMessage();
+                        System.out.println(message.toString());
 
-        switch (packet.getType()) {
-            case REGISTER:
-                if(message instanceof Utilizador registerUser)
-                    //Este user vem sem localização associada
-                    //register
-                    //send response
-                    if (existsUser(((Utilizador) message).getUsername(), ((Utilizador) message).getPassword())) {
+                        switch (packet.getType()) {
+                            case REGISTER:
+                                if (message instanceof Utilizador registerUser)
+                                    //Este user vem sem localização associada
+                                    //register
+                                    //send response
+                                    if (existsUser(((Utilizador) message).getUsername(), ((Utilizador) message).getPassword())) {
 
-                        try {
-                            out.writeUTF("Utilizador já existe!");
-                            out.flush();
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                                        try {
+                                            out.writeUTF("Utilizador já existe!");
+                                            out.flush();
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+
+                                    } else {
+
+                                        File file = new File("registos.txt");
+                                        FileWriter fr = new FileWriter(file, true);
+                                        BufferedWriter br = new BufferedWriter(fr);
+                                        PrintWriter pr = new PrintWriter(br);
+                                        pr.println(((Utilizador) message).toStringAccountInfo());
+                                        pr.close();
+                                        br.close();
+                                        fr.close();
+
+                                    }
+                                break;
+                            case CONNECTION:
+                                if (message instanceof Utilizador connectUser)
+                                    //Atenção, este user só tem msm o id e a pass
+                                    //é preciso ir à lista de users válidos e guardar
+
+                                    //Verify if id exists
+                                    //Verify is password is correct
+                                    //log user in
+                                    //send response
+                                    ;
+                                break;
+                            case DESCONNECTION:
+                                //log user out
+                                ;
+                                break;
+                            case NEARBY_SCOOTERS:
+                                if (message instanceof Localizacao userLocation)
+                                    //check scooters close by
+                                    //make a list of them
+                                    //send list to user
+                                    ;
+                                break;
+                            case NEARBY_REWARDS:
+                                if (message instanceof Localizacao userLocation)
+                                    //check rewards close by
+                                    //make a list of them
+                                    //send list to user
+                                    ;
+                                break;
+                            case START_TRIP:
+                                if (message instanceof Localizacao userLocation)
+                                    //check timestamp and save in reservation
+                                    //save starting location
+                                    ;
+                                break;
+                            case END_TRIP:
+                                //TODO
+                                break;
                         }
 
-                    } else {
-
-                        File file = new File("registos.txt");
-                        FileWriter fr = new FileWriter(file, true);
-                        BufferedWriter br = new BufferedWriter(fr);
-                        PrintWriter pr = new PrintWriter(br);
-                        pr.println(((Utilizador) message).toStringAccountInfo());
-                        pr.close();
-                        br.close();
-                        fr.close();
-
+                    } catch (Exception e) {
+                        System.out.println("Erro");
                     }
-                break;
-            case CONNECTION:
-                if(message instanceof Utilizador connectUser)
-                    //Atenção, este user só tem msm o id e a pass
-                    //é preciso ir à lista de users válidos e guardar
+                }
+            }).start();
 
-                    //Verify if id exists
-                    //Verify is password is correct
-                    //log user in
-                    //send response
-                    ;
-                break;
-            case DESCONNECTION:
-                //log user out
-                ;
-                break;
-            case NEARBY_SCOOTERS:
-                if (message instanceof Localizacao userLocation)
-                    //check scooters close by
-                    //make a list of them
-                    //send list to user
-                    ;
-                break;
-            case NEARBY_REWARDS:
-                if (message instanceof Localizacao userLocation)
-                    //check rewards close by
-                    //make a list of them
-                    //send list to user
-                    ;
-                break;
-            case START_TRIP:
-                if (message instanceof Localizacao userLocation)
-                    //check timestamp and save in reservation
-                    //save starting location
-                    ;
-                break;
-            case END_TRIP:
-                //TODO
-                break;
         }
     }
 
