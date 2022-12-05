@@ -7,11 +7,12 @@ import java.util.ArrayList;
 
 public class Trotinete{
 
-String idTrotinete;
-boolean reservada;
-int velocidade;
-char direcao;
-Localizacao localizacao;
+    private String idTrotinete;
+    //O estar reservada é um atributo da trotinete ou da reserva?
+    private boolean reservada;
+    private int velocidade;
+    private char direcao;
+    private Localizacao localizacao;
 
     public Trotinete(String idTrotinete, boolean reservada, int velocidade, char direcao, Localizacao localizacao) {
         this.idTrotinete = idTrotinete;

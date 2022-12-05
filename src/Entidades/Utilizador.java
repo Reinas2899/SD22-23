@@ -6,12 +6,12 @@ import java.io.IOException;
 
 public class Utilizador {
 
-    String id;
-    String username;
-    String nome;
-    int creditos;
-    String password;
-    Localizacao localizacao;
+    private String id;
+    private String username;
+    private String nome;
+    private int creditos;
+    private String password;
+    private Localizacao localizacao;
 
 
     public Utilizador(String id, String username, String nome, int creditos, String password, Localizacao localizacao) {
@@ -20,6 +20,33 @@ public class Utilizador {
         this.nome = nome;
         this.creditos = creditos;
         this.password = password;
+        this.localizacao = localizacao;
+    }
+
+    public Utilizador(String id, String username, String nome, String password) {
+        this.id = id;
+        this.username = username;
+        this.nome = nome;
+        this.creditos = 0;
+        this.password = password;
+        this.localizacao = null;
+    }
+
+    public Utilizador(String id, String password) {
+        this.id = id;
+        this.username = null;
+        this.nome = null;
+        this.creditos = 0;
+        this.password = password;
+        this.localizacao = null;
+    }
+
+    public Utilizador(Localizacao localizacao) {
+        this.id = null;
+        this.username = null;
+        this.nome = null;
+        this.creditos = 0;
+        this.password = null;
         this.localizacao = localizacao;
     }
 
@@ -97,7 +124,21 @@ public class Utilizador {
         out.flush();
     }
 
-    // @TODO
+    public void serializeBasics (DataOutputStream out) throws IOException {
+        out.writeUTF(id);
+        out.writeUTF(password);
+        out.flush();
+    }
+
+    public void serializeAccountInfo (DataOutputStream out) throws IOException {
+        out.writeUTF(id);
+        out.writeUTF(username);
+        out.writeUTF(nome);
+        out.writeUTF(password);
+        out.flush();
+    }
+
+    //
     public static Utilizador deserialize (DataInputStream in) throws IOException {
         String id = in.readUTF();
         String username = in.readUTF();
@@ -107,8 +148,22 @@ public class Utilizador {
         Localizacao localizacao = new Localizacao(in.readInt(), in.readInt());
 
         return new Utilizador(id,username , nome, creditos,password, localizacao );
+    }
 
+    public static Utilizador deserializeBasics (DataInputStream in) throws IOException {
+        String id = in.readUTF();
+        String password = in.readUTF();
 
+        return new Utilizador(id, password);
+    }
+
+    public static Utilizador deserializeAccountInfo (DataInputStream in) throws IOException {
+        String id = in.readUTF();
+        String username = in.readUTF();
+        String nome = in.readUTF();
+        String password = in.readUTF();
+
+        return new Utilizador(id,username , nome, password );
     }
 
 }

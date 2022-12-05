@@ -24,6 +24,5 @@ public class ReservationMessage {
 
     public static ReservationMessage deserialize(DataInputStream in) throws IOException {
         return new ReservationMessage(in.readUTF(), Localizacao.deserialize(in));
-
     }
 }
