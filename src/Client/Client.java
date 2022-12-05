@@ -6,6 +6,7 @@ import Entidades.Localizacao;
 import Entidades.Trotinete;
 import Servidor.Message.*;
 
+import java.awt.*;
 import java.io.*;
 import java.net.Socket;
 
@@ -14,16 +15,13 @@ public class Client {
 
 
     public static void main(String[] args) throws IOException {
+
         Localizacao l = new Localizacao(0, 0);
         Trotinete t = new Trotinete("1", false, 10, 'N', l);
 
         Socket s = new Socket("localhost", 4999);
         DataOutputStream out = new DataOutputStream(s.getOutputStream());
-        t.serialize(out);
-
-        PrintWriter pr = new PrintWriter(s.getOutputStream());
-        pr.println("hello");
-        out.flush();
+        Menu.menu(out);
 
         //COISAS QUE VÊM DO SERVER
         DataInputStream in = new DataInputStream(s.getInputStream());

@@ -7,7 +7,11 @@ import Servidor.Message.*;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+
 import java.util.List;
+
+import java.util.Scanner;
+
 
 
 public class Server {
@@ -18,24 +22,26 @@ public class Server {
     private List<Reservation> activeReservations = null;
 
     public static void main(String[] args) throws IOException {
-    ServerSocket ss = new ServerSocket(4999);
-    Socket s = ss.accept();
+        ServerSocket ss = new ServerSocket(4999);
+        Socket s = ss.accept();
         System.out.println("Client Connected");
         DataInputStream in = new DataInputStream(s.getInputStream());
         DataOutputStream out = new DataOutputStream(s.getOutputStream());
 
+
         Message packet = Message.deserialize(in);
         Object message = packet.getMessage();
+        System.out.println(message.toString());
 
-        switch (packet.getType()){
+        switch (packet.getType()) {
             case REGISTER:
-                if(message instanceof UserMessage registerUser)
+                if (message instanceof UserMessage registerUser)
                     //register
                     //send response
                     ;
                 break;
             case CONNECTION:
-                if(message instanceof UserMessage connectUser)
+                if (message instanceof UserMessage connectUser)
                     //Verify if id exists
                     //Verify is password is correct
                     //log user in
@@ -47,21 +53,21 @@ public class Server {
                 ;
                 break;
             case NEARBY_SCOOTERS:
-                if(message instanceof Localizacao userLocation)
+                if (message instanceof Localizacao userLocation)
                     //check scooters close by
                     //make a list of them
                     //send list to user
                     ;
                 break;
             case NEARBY_REWARDS:
-                if(message instanceof Localizacao userLocation)
+                if (message instanceof Localizacao userLocation)
                     //check rewards close by
                     //make a list of them
                     //send list to user
                     ;
                 break;
             case START_TRIP:
-                if(message instanceof Localizacao userLocation)
+                if (message instanceof Localizacao userLocation)
                     //check timestamp and save in reservation
                     //save starting location
                     ;
@@ -74,33 +80,74 @@ public class Server {
         Trotinete t = Trotinete.deserialize(in);
         System.out.println(t.toString());
 
-        //InputStreamReader in = new InputStreamReader(s.getInputStream());
-        //BufferedReader bf = new BufferedReader(in);
-        //String str= bf.readLine();
-        //System.out.println("Client: "+ str);
-
-        PrintWriter pr = new PrintWriter(s.getOutputStream());
-        pr.println("yes ");
-        pr.flush();
+        Message m = Message.deserialize(in);
+        handler(m, out);
     }
 
 
-    public void Handler(Message message){
+        public static void handler (Message m, DataOutputStream out) throws IOException {
 
-        if (message.getType()== MessageType.REGISTER){
-            try {
-                FileWriter writer = new FileWriter(userFileName);
-                writer.write(message.toString());
-                writer.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+
+            if (m.getType() == MessageType.REGISTER) {
+
+                String[] conteudo = m.getMessage().toString().split(",");
+                System.out.println(m);
+
+                    if (existsUser(conteudo[0], conteudo[1])) {
+
+                        try {
+                            out.writeUTF("Utilizador já existe!");
+                            out.flush();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                    } else {
+
+                        File file = new File("registos.txt");
+                        FileWriter fr = new FileWriter(file, true);
+                        BufferedWriter br = new BufferedWriter(fr);
+                        PrintWriter pr = new PrintWriter(br);
+                        pr.println(conteudo[0] + "," + conteudo[1]);
+                        pr.close();
+                        br.close();
+                        fr.close();
+
+                    }
+
+                } else if (m.getType() == MessageType.CONNECTION) {
+                String[] conteudo = m.getMessage().toString().split(",");
+                System.out.println(m);
+                    if (existsUser(conteudo[0], conteudo[1])) {
+                        out.writeUTF("Login Realizado Com Sucesso!");
+                        out.flush();
+                    } else {
+                        out.writeUTF("Login Incorreto");
+                        out.flush();
+                    }
+                }
+
+            }
+            public static boolean existsUser (String username, String password){
+                File ficheiro = new File("registos.txt");
+                String search = username + "," + password;
+                try {
+                    Scanner scanner = new Scanner(ficheiro);
+
+                    int lineNum = 0;
+                    while (scanner.hasNextLine()) {
+                        String line = scanner.nextLine();
+                        lineNum++;
+                        if (line.equals(search)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                } catch (FileNotFoundException e) {
+                    //handle this
+                }
+                return false;
             }
 
         }
-
-
-    }
-
-
-}
 
