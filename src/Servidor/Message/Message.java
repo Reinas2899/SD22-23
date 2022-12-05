@@ -1,5 +1,6 @@
 package Servidor.Message;//SD Protocol
 import Entidades.Localizacao;
+import Entidades.Utilizador;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -27,7 +28,8 @@ public class Message {
         Object message = new Object();
         switch (type) {
             case SUCCESS_RESPONSE -> message = SuccessResponse.deserialize(in);
-            case REGISTER, CONNECTION -> message = UserMessage.deserialize(in);
+            case REGISTER -> message = Utilizador.deserialize(in);
+            case CONNECTION -> message = Utilizador.deserialize(in);
             case NEARBY_SCOOTERS, NEARBY_REWARDS, START_TRIP -> message = Localizacao.deserialize(in);
             case LIST_SCOOTERS, LIST_REWARDS -> message = ListObject.deserialize(in);
             case DESCONNECTION -> {
@@ -46,9 +48,12 @@ public class Message {
                     suRe.serialize(out);
                 break;
             case REGISTER:
+                if(message instanceof Utilizador user)
+                    user.serializeAccountInfo(out);
+                break;
             case CONNECTION:
-                if(message instanceof UserMessage userMe)
-                    userMe.serialize(out);
+                if(message instanceof Utilizador user)
+                    user.serializeBasics(out);
                 break;
             case NEARBY_SCOOTERS:
             case NEARBY_REWARDS:

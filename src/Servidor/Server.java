@@ -3,12 +3,14 @@ package Servidor;
 import Entidades.Localizacao;
 import Entidades.Reservation;
 import Entidades.Trotinete;
+import Entidades.Utilizador;
 import Servidor.Message.*;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 import java.util.List;
+import java.util.Map;
 
 import java.util.Scanner;
 
@@ -17,9 +19,12 @@ import java.util.Scanner;
 public class Server {
     String logFileName;
     String userFileName;
-    String TrotiFileName;
+    String TrotiFileName; //Porque não ter um map das trotinetes?
 
-    private List<Reservation> activeReservations = null;
+    private Map<String, Reservation> activeReservations = null;
+
+    //Lista de threads ativas, aka, clientes/users ativos
+
 
     public static void main(String[] args) throws IOException {
         ServerSocket ss = new ServerSocket(4999);
@@ -35,13 +40,17 @@ public class Server {
 
         switch (packet.getType()) {
             case REGISTER:
-                if (message instanceof UserMessage registerUser)
+                if(message instanceof Utilizador registerUser)
+                    //Este user vem sem localização associada
                     //register
                     //send response
                     ;
                 break;
             case CONNECTION:
-                if (message instanceof UserMessage connectUser)
+                if(message instanceof Utilizador connectUser)
+                    //Atenção, este user só tem msm o id e a pass
+                    //é preciso ir à lista de users válidos e guardar
+
                     //Verify if id exists
                     //Verify is password is correct
                     //log user in
