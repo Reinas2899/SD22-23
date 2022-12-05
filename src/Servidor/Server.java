@@ -31,65 +31,62 @@ public class Server {
         while (true) {
             Socket s = ss.accept();
             System.out.println("Client Connected");
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        DataInputStream in = new DataInputStream(s.getInputStream());
-                        DataOutputStream out = new DataOutputStream(s.getOutputStream());
+            new Thread(() -> {
+                try {
+                    DataInputStream in = new DataInputStream(s.getInputStream());
+                    DataOutputStream out = new DataOutputStream(s.getOutputStream());
 
-                        Message packet = Message.deserialize(in);
-                        Object message = packet.getMessage();
-                        System.out.println(message.toString());
+                    Message packet = Message.deserialize(in);
+                    Object message = packet.getMessage();
+                    System.out.println(message.toString());
 
-                        switch (packet.getType()) {
-                            case REGISTER:
-                                if (message instanceof Utilizador registerUser)
-                                    registaUser(message,out);
-                                break;
-                            case CONNECTION:
-                                if (message instanceof Utilizador connectUser)
-                                    //Atenção, este user só tem msm o id e a pass
-                                    //é preciso ir à lista de users válidos e guardar
+                    switch (packet.getType()) {
+                        case REGISTER:
+                            if (message instanceof Utilizador registerUser)
+                                registaUser(message,out);
+                            break;
+                        case CONNECTION:
+                            if (message instanceof Utilizador connectUser)
+                                //Atenção, este user só tem msm o id e a pass
+                                //é preciso ir à lista de users válidos e guardar
 
-                                    //Verify if id exists
-                                    //Verify is password is correct
-                                    //log user in
-                                    //send response
-                                    ;
-                                break;
-                            case DESCONNECTION:
-                                //log user out
+                                //Verify if id exists
+                                //Verify is password is correct
+                                //log user in
+                                //send response
                                 ;
-                                break;
-                            case NEARBY_SCOOTERS:
-                                if (message instanceof Localizacao userLocation)
-                                    //check scooters close by
-                                    //make a list of them
-                                    //send list to user
-                                    ;
-                                break;
-                            case NEARBY_REWARDS:
-                                if (message instanceof Localizacao userLocation)
-                                    //check rewards close by
-                                    //make a list of them
-                                    //send list to user
-                                    ;
-                                break;
-                            case START_TRIP:
-                                if (message instanceof Localizacao userLocation)
-                                    //check timestamp and save in reservation
-                                    //save starting location
-                                    ;
-                                break;
-                            case END_TRIP:
-                                //TODO
-                                break;
-                        }
-
-                    } catch (Exception e) {
-                        System.out.println("Erro");
+                            break;
+                        case DESCONNECTION:
+                            //log user out
+                            ;
+                            break;
+                        case NEARBY_SCOOTERS:
+                            if (message instanceof Localizacao userLocation)
+                                //check scooters close by
+                                //make a list of them
+                                //send list to user
+                                ;
+                            break;
+                        case NEARBY_REWARDS:
+                            if (message instanceof Localizacao userLocation)
+                                //check rewards close by
+                                //make a list of them
+                                //send list to user
+                                ;
+                            break;
+                        case START_TRIP:
+                            if (message instanceof Localizacao userLocation)
+                                //check timestamp and save in reservation
+                                //save starting location
+                                ;
+                            break;
+                        case END_TRIP:
+                            //TODO
+                            break;
                     }
+
+                } catch (Exception e) {
+                    System.out.println("Erro");
                 }
             }).start();
 
