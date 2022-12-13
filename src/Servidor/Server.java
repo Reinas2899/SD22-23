@@ -13,7 +13,8 @@ import java.util.List;
 import java.util.Map;
 
 import java.util.Scanner;
-
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 public class Server {
@@ -21,7 +22,10 @@ public class Server {
     String userFileName;
     String TrotiFileName; //Porque não ter um map das trotinetes?
 
-    private Map<String, Reservation> activeReservations = null;
+    private Map<String, Reservation> activeReservations;
+    private static Map<String, Utilizador> contasAtivas;
+    private static Lock l = new ReentrantLock();
+    private static Map<String,Trotinete> trotinetes;
 
     //Lista de threads ativas, aka, clientes/users ativos
 
@@ -42,11 +46,13 @@ public class Server {
 
                     switch (packet.getType()) {
                         case REGISTER:
-                            if (message instanceof Utilizador registerUser)
+                            if (message instanceof Utilizador registaUser)
                                 registaUser(message,out);
                             break;
                         case CONNECTION:
                             if (message instanceof Utilizador connectUser)
+
+                                login(message,out);
                                 //Atenção, este user só tem msm o id e a pass
                                 //é preciso ir à lista de users válidos e guardar
 
@@ -54,9 +60,9 @@ public class Server {
                                 //Verify is password is correct
                                 //log user in
                                 //send response
-                                ;
                             break;
                         case DESCONNECTION:
+                            logout(message,out);
                             //log user out
                             ;
                             break;
@@ -94,52 +100,56 @@ public class Server {
     }
 
 
-        public static void handler (Message m, DataOutputStream out) throws IOException {
 
+            public static void login(Object message, DataOutputStream out){
 
-            if (m.getType() == MessageType.REGISTER) {
+                if(existsUser(((Utilizador) message).getUsername(), ((Utilizador) message).getPassword())){
+                    l.lock();
+                    try{
+                    try {
 
-                String[] conteudo = m.getMessage().toString().split(",");
-                System.out.println(m);
-
-                    if (existsUser(conteudo[0], conteudo[1])) {
-
-                        try {
-                            out.writeUTF("Utilizador já existe!");
-                            out.flush();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-
-                    } else {
-
-                        File file = new File("registos.txt");
-                        FileWriter fr = new FileWriter(file, true);
-                        BufferedWriter br = new BufferedWriter(fr);
-                        PrintWriter pr = new PrintWriter(br);
-                        pr.println(conteudo[0] + "," + conteudo[1]);
-                        pr.close();
-                        br.close();
-                        fr.close();
-
+                        contasAtivas.put(((Utilizador) message).getUsername(),(Utilizador) message);
+                        out.writeUTF("Login Efetuado com Sucessso"); // colocar aqui uma tag para que o cliente saiba q pode avançar
+                        out.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-
-                } else if (m.getType() == MessageType.CONNECTION) {
-                String[] conteudo = m.getMessage().toString().split(",");
-                System.out.println(m);
-                    if (existsUser(conteudo[0], conteudo[1])) {
-                        out.writeUTF("Login Realizado Com Sucesso!");
+                    }finally {
+                        l.unlock();
+                    }
+                } else {
+                    try {
+                        out.writeUTF("Username ou Password erradas");
                         out.flush();
-                    } else {
-                        out.writeUTF("Login Incorreto");
-                        out.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
                 }
 
             }
-            public static boolean existsUser (String username, String password){
-                File ficheiro = new File("registos.txt");
-                String search = username + "," + password;
+
+    public static void logout(Object message, DataOutputStream out){
+
+
+        l.lock();
+        try {
+            try {
+            contasAtivas.remove(((Utilizador) message).getUsername());
+            out.writeUTF("Logout Efetuado com Sucessso"); // colocar aqui uma tag para que o cliente saiba q tem de voltar para o menu principal
+            out.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        } finally {
+            l.unlock();
+        }
+
+
+        }
+
+        public static boolean existsUser (String username, String password){
+            File ficheiro = new File("registos.txt");
+            String search = username + "," + password;
                 try {
                     Scanner scanner = new Scanner(ficheiro);
 
@@ -155,7 +165,7 @@ public class Server {
                 } catch (FileNotFoundException e) {
                     //handle this
                 }
-                return false;
+            return false;
             }
 
             public static void registaUser(Object message, DataOutputStream out) throws IOException{
@@ -183,6 +193,10 @@ public class Server {
 
             }
 
-        }
+    public static void setContasAtivas(Map<String, Utilizador> contasAtivas) {
+        Server.contasAtivas = contasAtivas;
+    }
+
+}
 
 
