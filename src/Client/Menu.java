@@ -21,7 +21,6 @@ public class Menu {
         System.out.println("|Insira a operação que pretende realizar :   |");
         System.out.println("|1->Registar utilizador                      |");
         System.out.println("|2->Autenticar                               |");
-        System.out.println("|3->                                         |");
         System.out.println("----------------------------------------------");
 
         int opcao = ler.nextInt();
@@ -39,6 +38,7 @@ public class Menu {
             System.out.println("aqui");
             System.out.println(m.toString());
             m.serialize(out);
+            menu2();
 
 
             if (opcao == 2) {
@@ -48,11 +48,38 @@ public class Menu {
                 pass = ler.nextLine();
                 m = new Message(REGISTER, "1" + "," + user + "," + pass + "," + LocalDateTime.now().toString());
                 m.serialize(out);
-
+                menu2();
             }
 
 
         }
+    }
+
+    public static void menu2() {
+        Scanner ler = new Scanner(System.in);
+        System.out.println("------------------SD-TP-GRUPO-21--------------");
+        System.out.println("|Insira a operação que pretende realizar :   |");
+        System.out.println("|1->Obter as trotinetes mais próximas        |");
+        System.out.println("|2->Iniciar viagem                           |");
+        System.out.println("|3->Terminar viagem                          |");
+        System.out.println("|4->Reservar trotinete                       |");
+        System.out.println("----------------------------------------------");
+        int opt = ler.nextInt();
+        ler.nextLine();
+        if (opt== 1){
+           //Message m=new Message(NEARBY_SCOOTERS,"5"+","+posicaoatualx+","+posicaoatualy);
+        //enviar mensagem para  obter as trotinetes mais proximas
+        }
+        if (opt==2){
+        //enviar mensagem a dizer que reservei a trotinete numa dada localizacao
+        }
+        if (opt==3){
+            //enviar mensagem a dizer que terminei viagem na localizaçao
+        }
+        if (opt==4){
+            //enviar mensagema dizer que quero reservar trotinete na localixzação x e y dadas
+        }
+
     }
 }
 
