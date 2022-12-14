@@ -51,6 +51,8 @@ public class Localizacao {
 
     }
 
+
+
     @Override
     public String toString() {
         return "(" + x + "," + y +")";

@@ -1,26 +1,21 @@
 package Servidor;
 
-import Entidades.Localizacao;
-import Entidades.Reservation;
-import Entidades.Trotinete;
-import Entidades.Utilizador;
+import Entidades.*;
 import Servidor.Message.*;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import java.util.Scanner;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 
 public class Server {
-    String logFileName;
-    String userFileName;
-    String TrotiFileName; //Porque não ter um map das trotinetes?
+   //Porque não ter um map das trotinetes?
+
+
 
     private Map<String, Reservation> activeReservations;
     private static Map<String, Utilizador> contasAtivas;
@@ -32,6 +27,8 @@ public class Server {
 
     public static void main(String[] args) throws IOException {
         ServerSocket ss = new ServerSocket(4999);
+        preencheMapaTroti(20);
+
         while (true) {
             Socket s = ss.accept();
             System.out.println("Client Connected");
@@ -47,12 +44,12 @@ public class Server {
                     switch (packet.getType()) {
                         case REGISTER:
                             if (message instanceof Utilizador registaUser)
-                                registaUser(message,out);
+                                registaUser(registaUser,out);
                             break;
                         case CONNECTION:
                             if (message instanceof Utilizador connectUser)
 
-                                login(message,out);
+                                login(connectUser,out);
                                 //Atenção, este user só tem msm o id e a pass
                                 //é preciso ir à lista de users válidos e guardar
 
@@ -67,7 +64,18 @@ public class Server {
                             ;
                             break;
                         case NEARBY_SCOOTERS:
-                            if (message instanceof Localizacao userLocation)
+                            if (message instanceof Localizacao userLocation) {
+                                List<Trotinete> lista = nearbyScooter(10,userLocation);
+                                if (lista.isEmpty()){
+                                    out.writeUTF("Nenhuma scooter nas proximidades.");
+                                }
+                                out.writeInt(lista.size());
+                                for (Trotinete t: lista) {
+                                    t.serialize(out);
+                                }
+                            }
+
+
                                 //check scooters close by
                                 //make a list of them
                                 //send list to user
@@ -101,45 +109,33 @@ public class Server {
 
 
 
-            public static void login(Object message, DataOutputStream out){
+            public static void login(Utilizador user, DataOutputStream out) throws IOException{
 
-                if(existsUser(((Utilizador) message).getUsername(), ((Utilizador) message).getPassword())){
+                if(existsUser(user.getUsername(), user.getPassword())){
                     l.lock();
                     try{
-                    try {
-
-                        contasAtivas.put(((Utilizador) message).getUsername(),(Utilizador) message);
+                        contasAtivas.put(user.getUsername(),user);
                         out.writeUTF("Login Efetuado com Sucessso"); // colocar aqui uma tag para que o cliente saiba q pode avançar
                         out.flush();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
                     }finally {
                         l.unlock();
                     }
                 } else {
-                    try {
                         out.writeUTF("Username ou Password erradas");
                         out.flush();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+
                 }
 
             }
 
-    public static void logout(Object message, DataOutputStream out){
+    public static void logout(Object message, DataOutputStream out) throws IOException{
 
 
         l.lock();
         try {
-            try {
             contasAtivas.remove(((Utilizador) message).getUsername());
             out.writeUTF("Logout Efetuado com Sucessso"); // colocar aqui uma tag para que o cliente saiba q tem de voltar para o menu principal
             out.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         } finally {
             l.unlock();
         }
@@ -147,10 +143,9 @@ public class Server {
 
         }
 
-        public static boolean existsUser (String username, String password){
+        public static boolean existsUser (String username, String password) throws FileNotFoundException{
             File ficheiro = new File("registos.txt");
             String search = username + "," + password;
-                try {
                     Scanner scanner = new Scanner(ficheiro);
 
                     int lineNum = 0;
@@ -161,30 +156,22 @@ public class Server {
                             return true;
                         }
                     }
-                    return false;
-                } catch (FileNotFoundException e) {
-                    //handle this
-                }
+
             return false;
             }
 
-            public static void registaUser(Object message, DataOutputStream out) throws IOException{
-                if (existsUser(((Utilizador) message).getUsername(), ((Utilizador) message).getPassword())) {
+            public static void registaUser(Utilizador user, DataOutputStream out) throws IOException{
+                if (existsUser(user.getUsername(), user.getPassword())) {
 
-                    try {
                         out.writeUTF("Utilizador já existe!");
                         out.flush();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
                 } else {
 
                     File file = new File("registos.txt");
                     FileWriter fr = new FileWriter(file, true);
                     BufferedWriter br = new BufferedWriter(fr);
                     PrintWriter pr = new PrintWriter(br);
-                    pr.println(((Utilizador) message).toStringAccountInfo());
+                    pr.println(user.toStringAccountInfo());
                     pr.close();
                     br.close();
                     fr.close();
@@ -196,6 +183,56 @@ public class Server {
     public static void setContasAtivas(Map<String, Utilizador> contasAtivas) {
         Server.contasAtivas = contasAtivas;
     }
+
+    public Recompensa geraRecompensa(){
+
+
+        Random random = new Random();
+        Localizacao l = new Localizacao(random.nextInt(0,20), random.nextInt(0,20));
+        Recompensa r = new Recompensa(l, random.nextInt(0,10));
+
+
+        return r;
+    }
+
+    public static void preencheMapaTroti(int n){
+        int i = 1;
+        Random random = new Random();
+        while(i<=n) {
+            Localizacao l = new Localizacao(random.nextInt(0,20), random.nextInt(0,20));
+            for (Trotinete t1: trotinetes.values()) {
+                if(t1.getLocalizacao() == l){
+                    l =  new Localizacao(random.nextInt(0,20), random.nextInt(0,20));
+                }
+
+            }
+            Trotinete t = new Trotinete(Integer.toString(i),false,l);
+            trotinetes.put(t.getIdTrotinete(),t);
+                    i++;
+        }
+    }
+
+    public static List<Trotinete> nearbyScooter(int d, Localizacao l){
+        List<Trotinete> lista = new ArrayList<>();
+        double distance;
+
+        for (Trotinete t: trotinetes.values()) {
+
+            distance = distanciaLocalizacao(t.getLocalizacao(),l);
+            if(distance <=d){
+                lista.add(t);
+            }
+        }
+        return lista;
+
+
+    }
+
+    public static double distanciaLocalizacao(Localizacao l1, Localizacao l2){
+        return Math.hypot(l2.getX()- l1.getX(), l2.getY() - l1.getY());
+
+    }
+
 
 }
 

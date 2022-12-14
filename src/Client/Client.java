@@ -17,7 +17,7 @@ public class Client {
     public static void main(String[] args) throws IOException {
 
         Localizacao l = new Localizacao(0, 0);
-        Trotinete t = new Trotinete("1", false, 10, 'N', l);
+        Trotinete t = new Trotinete("1", false, l);
 
         Socket s = new Socket("localhost", 4999);
         DataOutputStream out = new DataOutputStream(s.getOutputStream());
