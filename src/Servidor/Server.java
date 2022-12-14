@@ -21,6 +21,7 @@ public class Server {
     private static Map<String, Utilizador> contasAtivas;
     private static Lock l = new ReentrantLock();
     private static Map<String,Trotinete> trotinetes;
+    private static List<Recompensa> recompensas;
 
     //Lista de threads ativas, aka, clientes/users ativos
 
@@ -82,7 +83,16 @@ public class Server {
                                 ;
                             break;
                         case NEARBY_REWARDS:
-                            if (message instanceof Localizacao userLocation)
+                            if (message instanceof Localizacao userLocation) {
+                                List<Recompensa> lista = nearbyRecompensa(10,userLocation);
+                                if (lista.isEmpty()){
+                                    out.writeUTF("Nenhuma recompensa nas proximidades.");
+                                }
+                                out.writeInt(lista.size());
+                                for (Recompensa r: lista) {
+                                    r.serialize(out);
+                                }
+                            }
                                 //check rewards close by
                                 //make a list of them
                                 //send list to user
@@ -184,15 +194,16 @@ public class Server {
         Server.contasAtivas = contasAtivas;
     }
 
-    public Recompensa geraRecompensa(){
+    public void geraRecompensa(){
 
 
         Random random = new Random();
         Localizacao l = new Localizacao(random.nextInt(0,20), random.nextInt(0,20));
-        Recompensa r = new Recompensa(l, random.nextInt(0,10));
+        Recompensa r = new Recompensa(random.nextInt(0,10), l);
+
+        recompensas.add(r);
 
 
-        return r;
     }
 
     public static void preencheMapaTroti(int n){
@@ -226,6 +237,23 @@ public class Server {
         return lista;
 
 
+    }
+
+    public static List<Recompensa> nearbyRecompensa(int d, Localizacao l){
+        List<Recompensa> lista =new ArrayList<>();
+
+        double distance;
+
+        for (Recompensa r: recompensas) {
+
+            distance = distanciaLocalizacao(r.getL(),l);
+            if(distance <=d){
+                lista.add(r);
+            }
+        }
+
+
+        return lista;
     }
 
     public static double distanciaLocalizacao(Localizacao l1, Localizacao l2){
