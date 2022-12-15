@@ -5,6 +5,7 @@ import Entidades.Localizacao;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ListObject {
@@ -25,15 +26,15 @@ public class ListObject {
         out.flush();
     }
 
-    public static ListObject deserialize(DataInputStream in) throws IOException {
+    public static List<Localizacao> deserialize(DataInputStream in) throws IOException {
         int size = in.readInt();
-        List<Localizacao> objects = null;
+        List<Localizacao> objects = new ArrayList<>(size);
 
         for (int i = 0; i < size; i++) {
             Localizacao c = Localizacao.deserialize(in);
             objects.add(c);
         }
-        return new ListObject(size, objects);
+        return objects;
 
     }
 }

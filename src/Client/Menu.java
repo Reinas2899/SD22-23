@@ -2,6 +2,7 @@ package Client;
 
 
 
+import Entidades.Localizacao;
 import Entidades.Utilizador;
 import Servidor.Message.Message;
 
@@ -16,6 +17,10 @@ public class Menu {
 
 
     public static void menu(DataOutputStream out) throws IOException {
+        String user = "";
+        String pass = "";
+        Message m = null;
+        String nome = "";
         Scanner ler = new Scanner(System.in);
         System.out.println("------------------SD-TP-GRUPO-21--------------");
         System.out.println("|Insira a operação que pretende realizar :   |");
@@ -27,18 +32,15 @@ public class Menu {
         ler.nextLine();
         if (opcao == 1) {
             System.out.println("Insira o username :");
-            String user = ler.nextLine();
+            user = ler.nextLine();
             System.out.println("Insira a password :");
-            String pass = ler.nextLine();
-            System.out.println("Insira o nome :");
-            String nome = ler.nextLine();
-            Random random = new Random();
-            Integer id = random.nextInt(1,1000);
-            Message m = new Message(REGISTER, new Utilizador(id.toString(),user,nome,pass));
+            pass = ler.nextLine();
+            m = new Message(REGISTER, new Utilizador(user, pass));
             System.out.println("aqui");
             System.out.println(m.toString());
             m.serialize(out);
-            menu2();
+            menu(out);
+        }
 
 
             if (opcao == 2) {
@@ -46,16 +48,15 @@ public class Menu {
                 user = ler.nextLine();
                 System.out.println("Insira a password :");
                 pass = ler.nextLine();
-                m = new Message(REGISTER, "1" + "," + user + "," + pass + "," + LocalDateTime.now().toString());
+                m = new Message(CONNECTION, new Utilizador(user,pass));
                 m.serialize(out);
-                menu2();
-            }
+                }
 
 
         }
-    }
 
-    public static void menu2() {
+
+    public static void menu2(DataOutputStream out) throws IOException {
         Scanner ler = new Scanner(System.in);
         System.out.println("------------------SD-TP-GRUPO-21--------------");
         System.out.println("|Insira a operação que pretende realizar :   |");
@@ -67,7 +68,14 @@ public class Menu {
         int opt = ler.nextInt();
         ler.nextLine();
         if (opt== 1){
-           //Message m=new Message(NEARBY_SCOOTERS,"5"+","+posicaoatualx+","+posicaoatualy);
+            System.out.println("Insira a coordenada X :");
+            int x = ler.nextInt();
+            ler.nextLine();
+            System.out.println("Insira a coordenad Y :");
+            int y = ler.nextInt();
+            ler.nextLine();
+            Message m=new Message(NEARBY_SCOOTERS,new Localizacao(x,y));
+            m.serialize(out);
         //enviar mensagem para  obter as trotinetes mais proximas
         }
         if (opt==2){

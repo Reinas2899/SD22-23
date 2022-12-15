@@ -3,6 +3,8 @@ package Entidades;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class Localizacao {
@@ -60,6 +62,21 @@ public class Localizacao {
 
         Localizacao localizacao = new Localizacao(x,y);
         return localizacao;
+
+
+    }
+
+    public static List<Localizacao> listdeserialize (DataInputStream in) throws IOException {
+        int r = in.readInt();
+        int i = 0;
+        List<Localizacao> loc = new ArrayList<>(r);
+        while(i<r) {
+            int x = in.readInt();
+            int y = in.readInt();
+            loc.add(new Localizacao(x,y));
+            i++;
+        }
+        return loc;
 
 
     }

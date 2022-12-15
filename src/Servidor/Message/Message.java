@@ -15,7 +15,7 @@ public class Message {
     public String toString() {
         return "Message{" +
                 "type=" + type.toString() +
-                ", message=" + message.toString() +
+                "message=" + message.toString() +
                 '}';
     }
 
@@ -36,9 +36,11 @@ public class Message {
         Object message = new Object();
         switch (type) {
             case SUCCESS_RESPONSE -> message = SuccessResponse.deserialize(in);
-            case REGISTER -> message = Utilizador.deserializeAccountInfo(in);
-            case CONNECTION -> message = Utilizador.deserialize(in);
-            case NEARBY_SCOOTERS, NEARBY_REWARDS, START_TRIP -> message = Localizacao.deserialize(in);
+            case REGISTER -> message = Utilizador.deserializeBasics(in);
+            case CONNECTION -> message = Utilizador.deserializeBasics(in);
+            case NEARBY_SCOOTERS -> message = Localizacao.deserialize(in);
+            case NEARBY_REWARDS -> message = Localizacao.deserialize(in);
+            case START_TRIP -> message = Localizacao.deserialize(in);
             case LIST_SCOOTERS, LIST_REWARDS -> message = ListObject.deserialize(in);
             case DESCONNECTION -> {
             }
@@ -57,19 +59,27 @@ public class Message {
                 break;
             case REGISTER:
                 if(message instanceof Utilizador user)
-                    user.serializeAccountInfo(out);
+                    user.serializeBasics(out);
                 break;
             case CONNECTION:
                 if(message instanceof Utilizador user)
                     user.serializeBasics(out);
                 break;
             case NEARBY_SCOOTERS:
+                if(message instanceof Localizacao loc)
+                    loc.serialize(out);
+
             case NEARBY_REWARDS:
+                if(message instanceof Localizacao loc)
+                    loc.serialize(out);
             case START_TRIP:
                 if(message instanceof Localizacao loc)
                     loc.serialize(out);
                 break;
             case LIST_SCOOTERS:
+                if(message instanceof ListObject list)
+                    list.serialize(out);
+                break;
             case LIST_REWARDS:
                 if(message instanceof ListObject list)
                     list.serialize(out);

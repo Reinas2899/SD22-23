@@ -6,6 +6,12 @@ import java.io.IOException;
 
 public class SuccessResponse {
     private boolean flag;
+
+    @Override
+    public String toString() {
+        return message ;
+    }
+
     private String message;
 
     public SuccessResponse(boolean flag, String message) {

@@ -2,6 +2,7 @@ package Servidor;
 
 import Entidades.*;
 import Servidor.Message.Message;
+import Servidor.Message.SuccessResponse;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -10,6 +11,8 @@ import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static Servidor.Message.MessageType.LIST_SCOOTERS;
+import static Servidor.Message.MessageType.SUCCESS_RESPONSE;
 
 
 public class Server {
@@ -18,7 +21,7 @@ public class Server {
 
 
     private Map<String, Reservation> activeReservations;
-    private static Map<String, Utilizador> contasAtivas;
+    private static Map<String, Utilizador> contasAtivas = new HashMap<>();
     private static Lock l = new ReentrantLock();
     private static Map<Localizacao,Integer> trotinetes = new HashMap<>();
     private static Map<Localizacao,Integer> recompensas = new HashMap<>();
@@ -39,98 +42,85 @@ public class Server {
             Socket s = ss.accept();
             System.out.println("Client Connected");
             new Thread(() -> {
-                try {
-                    DataInputStream in = new DataInputStream(s.getInputStream());
-                    DataOutputStream out = new DataOutputStream(s.getOutputStream());
+                while (true) {
+                    try {
+                        DataInputStream in = new DataInputStream(s.getInputStream());
+                        DataOutputStream out = new DataOutputStream(s.getOutputStream());
 
-                    Message packet = Message.deserialize(in);
-                    Object message = packet.getMessage();
-                    System.out.println(message.toString());
+                        Message packet = Message.deserialize(in);
+                        Object message = packet.getMessage();
+                        System.out.println(packet.toString());
 
-                    switch (packet.getType()) {
-                        case REGISTER:
-                            if (message instanceof Utilizador registaUser)
-                                registaUser(registaUser,out);
-                            break;
-                        case CONNECTION:
-                            if (message instanceof Utilizador connectUser)
-
-                                login(connectUser,out);
-                                //Atenção, este user só tem msm o id e a pass
-                                //é preciso ir à lista de users válidos e guardar
-
-                                //Verify if id exists
-                                //Verify is password is correct
-                                //log user in
-                                //send response
-                            break;
-                        case DESCONNECTION:
-                            logout(message,out);
-                            //log user out
-                            ;
-                            break;
-                        case NEARBY_SCOOTERS:
-                            if (message instanceof Localizacao userLocation) {
-                                List<Localizacao> lista = nearbyScooter(distanciaUser,userLocation);
-                                if (lista.isEmpty()){
-                                    out.writeUTF("Nenhuma scooter nas proximidades.");
-                                }
-                                out.writeInt(lista.size());
-                                for (Localizacao t: lista) {
-                                    t.serialize(out);
-                                }
-                            }
-
+                        switch (packet.getType()) {
+                            case REGISTER:
+                                if (message instanceof Utilizador registaUser)
+                                    registaUser(registaUser, out);
+                                break;
+                            case CONNECTION:
+                                login((Utilizador) message, out);
+                                break;
+                            case DESCONNECTION:
+                                logout(message, out);
+                                //log user out
+                                ;
+                                break;
+                            case NEARBY_SCOOTERS:
+                                System.out.println("vou mandar scooters");
+                                List<Localizacao> lista = nearbyScooter(distanciaUser, (Localizacao) message);
+                                Message m =new Message(LIST_SCOOTERS,lista);
+                                m.serialize(out);
+                                System.out.println(m.toString());
 
                                 //check scooters close by
                                 //make a list of them
                                 //send list to user
                                 ;
-                            break;
-                        case NEARBY_REWARDS:
-                            if (message instanceof Localizacao userLocation) {
-                                List<Localizacao> lista = nearbyRecompensa(distanciaUser,userLocation);
-                                if (lista.isEmpty()){
-                                    out.writeUTF("Nenhuma recompensa nas proximidades.");
+                                break;
+                            case NEARBY_REWARDS:
+                                if (message instanceof Localizacao userLocation) {
+                                    List<Localizacao> lista1 = nearbyRecompensa(distanciaUser, userLocation);
+                                    if (lista1.isEmpty()) {
+                                        out.writeUTF("Nenhuma recompensa nas proximidades.");
+                                    }
+                                    out.writeInt(lista1.size());
+                                    for (Localizacao l : lista1) {
+                                        l.serialize(out);
+                                    }
                                 }
-                                out.writeInt(lista.size());
-                                for (Localizacao l: lista) {
-                                    l.serialize(out);
-                                }
-                            }
                                 //check rewards close by
                                 //make a list of them
                                 //send list to user
                                 ;
-                            break;
-                        case START_TRIP:
-                            if (message instanceof Localizacao userLocation) {
-                                l.lock();
-                                try {
-                                    trotinetes.put(userLocation,trotinetes.get(userLocation)-1);
-                                } finally {
-                                    l.unlock();
+                                break;
+                            case START_TRIP:
+                                if (message instanceof Localizacao userLocation) {
+                                    l.lock();
+                                    try {
+                                        trotinetes.put(userLocation, trotinetes.get(userLocation) - 1);
+                                    } finally {
+                                        l.unlock();
+                                    }
                                 }
-                            }
 
 
-                            break;
-                        case END_TRIP:
+                                break;
+                            case END_TRIP:
 
-                            if (message instanceof Localizacao userLocation) {
-                                l.lock();
-                                try {
-                                    trotinetes.put(userLocation,trotinetes.get(userLocation)+1);
-                                } finally {
-                                    l.unlock();
+                                if (message instanceof Localizacao userLocation) {
+                                    l.lock();
+                                    try {
+                                        trotinetes.put(userLocation, trotinetes.get(userLocation) + 1);
+                                    } finally {
+                                        l.unlock();
+                                    }
                                 }
-                            }
-                            //TODO
-                            break;
+                                //TODO
+                                break;
+                        }
+
+                    } catch (Exception e) {
+                        System.out.println("Erro");
                     }
-
-                } catch (Exception e) {
-                    System.out.println("Erro");
                 }
             }).start();
 
@@ -154,14 +144,15 @@ public class Server {
                     l.lock();
                     try{
                         contasAtivas.put(user.getUsername(),user);
-                        out.writeUTF("Login Efetuado com Sucessso"); // colocar aqui uma tag para que o cliente saiba q pode avançar
-                        out.flush();
+                        System.out.println("vou enviar");
+                        Message m = new Message(SUCCESS_RESPONSE,new SuccessResponse(true,"Login Efetuado com Sucesso!"));
+                        m.serialize(out);
                     }finally {
                         l.unlock();
                     }
                 } else {
-                        out.writeUTF("Username ou Password erradas");
-                        out.flush();
+                    Message m = new Message(SUCCESS_RESPONSE,new SuccessResponse(false,"Login Incorreto!"));
+                    m.serialize(out);
 
                 }
 
@@ -242,8 +233,6 @@ public class Server {
             else i--;
             i++;
         }
-        System.out.println(recompensas);
-
     }
 
     public static void criaMapaRecompensas(){

@@ -6,59 +6,26 @@ import java.io.IOException;
 
 public class Utilizador {
 
-    private String id;
     private String username;
-    private String nome;
     private int creditos;
     private String password;
-    private Localizacao localizacao;
 
 
-    public Utilizador(String id, String username, String nome, int creditos, String password, Localizacao localizacao) {
-        this.id = id;
+    public Utilizador(String username, int creditos, String password) {
         this.username = username;
-        this.nome = nome;
         this.creditos = creditos;
         this.password = password;
-        this.localizacao = localizacao;
+
     }
 
-    public Utilizador(String id, String username, String nome, String password) {
-        this.id = id;
+    public Utilizador(String username, String password) {
         this.username = username;
-        this.nome = nome;
         this.creditos = 0;
         this.password = password;
-        this.localizacao = null;
     }
 
-    public Utilizador(String id, String password) {
-        this.id = id;
-        this.username = null;
-        this.nome = null;
-        this.creditos = 0;
-        this.password = password;
-        this.localizacao = null;
-    }
 
-    public Utilizador(Localizacao localizacao) {
-        this.id = null;
-        this.username = null;
-        this.nome = null;
-        this.creditos = 0;
-        this.password = null;
-        this.localizacao = localizacao;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getUsername() {
+   public String getUsername() {
         return username;
     }
 
@@ -66,15 +33,7 @@ public class Utilizador {
         this.username = username;
     }
 
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public int getCreditos() {
+   public int getCreditos() {
         return creditos;
     }
 
@@ -90,82 +49,50 @@ public class Utilizador {
         this.password = password;
     }
 
-    public Localizacao getLocalizacao() {
-        return localizacao;
-    }
-
-    public void setLocalizacao(Localizacao localizacao) {
-        this.localizacao = localizacao;
-    }
-
-    @Override
+       @Override
     public String toString() {
-        return "id=" + id +
-                ",username=" + username +
-                ",nome=" + nome +
+        return "username=" + username +
                 ",creditos=" + creditos +
-                ",password=" + password +
-                ",localizacao=" + localizacao;
+                ",password=" + password;
     }
 
     public String toStringAccountInfo() {
-        return id + "," + username +"," + nome +"," + password;
+        return username +"," + password;
     }
 
 
 
     public void serialize (DataOutputStream out) throws IOException {
-        out.writeUTF(id);
+
         out.writeUTF(username);
-        out.writeUTF(nome);
+
 
         out.writeInt(creditos);
         out.writeUTF(password);
-        localizacao.serialize(out);
+
 
         out.flush();
     }
 
     public void serializeBasics (DataOutputStream out) throws IOException {
-        out.writeUTF(id);
-        out.writeUTF(password);
-        out.flush();
-    }
-
-    public void serializeAccountInfo (DataOutputStream out) throws IOException {
-        out.writeUTF(id);
         out.writeUTF(username);
-        out.writeUTF(nome);
         out.writeUTF(password);
         out.flush();
     }
-
     //
     public static Utilizador deserialize (DataInputStream in) throws IOException {
-        String id = in.readUTF();
         String username = in.readUTF();
-        String nome = in.readUTF();
         int creditos = in.readInt();
         String password = in.readUTF();
-        Localizacao localizacao = new Localizacao(in.readInt(), in.readInt());
 
-        return new Utilizador(id,username , nome, creditos,password, localizacao );
+        return new Utilizador(username , creditos,password);
     }
 
     public static Utilizador deserializeBasics (DataInputStream in) throws IOException {
-        String id = in.readUTF();
-        String password = in.readUTF();
-
-        return new Utilizador(id, password);
-    }
-
-    public static Utilizador deserializeAccountInfo (DataInputStream in) throws IOException {
-        String id = in.readUTF();
         String username = in.readUTF();
-        String nome = in.readUTF();
         String password = in.readUTF();
 
-        return new Utilizador(id,username , nome, password );
+        return new Utilizador(username, password);
     }
 
 }

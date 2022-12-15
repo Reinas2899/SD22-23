@@ -10,6 +10,8 @@ import java.awt.*;
 import java.io.*;
 import java.net.Socket;
 
+import static Client.Menu.*;
+
 
 public class Client {
 
@@ -18,39 +20,50 @@ public class Client {
 
         Socket s = new Socket("localhost", 4999);
         DataOutputStream out = new DataOutputStream(s.getOutputStream());
-        Menu.menu(out);
+        menu(out);
 
-       /* //COISAS QUE VÊM DO SERVER
-        DataInputStream in = new DataInputStream(s.getInputStream());
-        Message packet = Message.deserialize(in);
-        Object message = packet.getMessage();
+        //COISAS QUE VÊM DO SERVER
+        new Thread(() -> {
+        while (true) {
 
-        switch (packet.getType()) {
-            case SUCCESS_RESPONSE:
-                if (message instanceof SuccessResponse response)
-                    //print message and deal with the success flag
-                    ;
-                break;
-            case LIST_SCOOTERS:
-                if (message instanceof Localizacao userLocation)
-                    //check scooters close by
-                    //make a list of them
-                    //send list to user
-                    ;
-                break;
-            case LIST_REWARDS:
-                if (message instanceof Localizacao userLocation)
-                    //check rewards close by
-                    //make a list of them
-                    //send list to user
-                    ;
-                break;
-            case SCOOTER_RESERVATION_RESPONSE:
-                //TODO
-                break;
-            case COST_REWARD:
-                //TODO;
-                break;
-        }*/
+            try {
+                    DataInputStream in = new DataInputStream(s.getInputStream());
+                    Message packet = Message.deserialize(in);
+                    System.out.println(packet);
+                    Object message = packet.getMessage();
+
+
+
+            switch (packet.getType()) {
+                case SUCCESS_RESPONSE:
+
+                    System.out.println(message);
+                    menu2(out);
+
+
+                    break;
+                case LIST_SCOOTERS:
+                    System.out.println(message.toString());
+                    menu2(out);
+
+                    break;
+                case LIST_REWARDS:
+                        //check rewards close by
+                        //make a list of them
+                        //send list to user
+                        ;
+                    break;
+                case SCOOTER_RESERVATION_RESPONSE:
+                    //TODO
+                    break;
+                case COST_REWARD:
+                    //TODO;
+                    break;
+            }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }).start();
     }
 }
