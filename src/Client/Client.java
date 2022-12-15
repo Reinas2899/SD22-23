@@ -28,17 +28,22 @@ public class Client {
             try {
                     DataInputStream in = new DataInputStream(s.getInputStream());
                     Message packet = Message.deserialize(in);
-                    System.out.println(packet);
+                    System.out.println( "Mensagem recebida:" + packet);
                     Object message = packet.getMessage();
+
             switch (packet.getType()) {
                 case SUCCESS_RESPONSE:
-                    System.out.println(message);
-                    menu2(out);
-
+                    if (message.toString().equals("Login Incorreto!")) {
+                        System.out.println("Login Incorreto");
+                        menu(out);
+                    }
+                    else {
+                        System.out.println("Login efetuado com sucesso");
+                        menu2(out);
+                    }
 
                     break;
                 case LIST_SCOOTERS:
-                    System.out.println("Selecione uma Localizaçao: \n");
                     imprimeListas((ListObject) message);
                     menu2(out);
 
@@ -50,7 +55,7 @@ public class Client {
                         ;
                     break;
                 case SCOOTER_RESERVATION_RESPONSE:
-                    //TODO
+                    menuScooterReserve(out);
                     break;
                 case COST_REWARD:
                     //TODO;
