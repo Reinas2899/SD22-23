@@ -1,6 +1,7 @@
 package Servidor;
 
 import Entidades.*;
+import Servidor.Message.ListObject;
 import Servidor.Message.Message;
 import Servidor.Message.SuccessResponse;
 
@@ -49,7 +50,7 @@ public class Server {
 
                         Message packet = Message.deserialize(in);
                         Object message = packet.getMessage();
-                        System.out.println(packet.toString());
+                        //System.out.println(packet.toString());
 
                         switch (packet.getType()) {
                             case REGISTER:
@@ -67,7 +68,8 @@ public class Server {
                             case NEARBY_SCOOTERS:
                                 System.out.println("vou mandar scooters");
                                 List<Localizacao> lista = nearbyScooter(distanciaUser, (Localizacao) message);
-                                Message m =new Message(LIST_SCOOTERS,lista);
+                                ListObject lo = new ListObject(lista.size(),lista);
+                                Message m =new Message(LIST_SCOOTERS,lo);
                                 m.serialize(out);
                                 System.out.println(m.toString());
 

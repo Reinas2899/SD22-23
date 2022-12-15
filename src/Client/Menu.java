@@ -4,6 +4,7 @@ package Client;
 
 import Entidades.Localizacao;
 import Entidades.Utilizador;
+import Servidor.Message.ListObject;
 import Servidor.Message.Message;
 
 import java.io.*;
@@ -87,6 +88,14 @@ public class Menu {
         if (opt==4){
             //enviar mensagema dizer que quero reservar trotinete na localixzação x e y dadas
         }
+
+    }
+
+    public static void imprimeListas(ListObject list){
+        for (int i = 0; i < list.getSize() ; i++) {
+            System.out.println(list.getObjects().get(i) + "\n");
+        }
+
 
     }
 }

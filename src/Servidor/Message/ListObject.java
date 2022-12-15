@@ -9,6 +9,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ListObject {
+    public int getSize() {
+        return size;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
+    }
+
+    public List<Localizacao> getObjects() {
+        return objects;
+    }
+
+    public void setObjects(List<Localizacao> objects) {
+        this.objects = objects;
+    }
+
+    @Override
+    public String toString() {
+        return "ListObject{" +
+                "size=" + size +
+                ", objects=" + objects +
+                '}';
+    }
+
     private int size;
     private List<Localizacao> objects;
 
@@ -20,21 +44,20 @@ public class ListObject {
     public void serialize(DataOutputStream out) throws IOException {
         out.writeInt(size);
         for (Localizacao loc : objects) {
-            out.writeFloat(loc.getX());
-            out.writeFloat(loc.getY());
+            out.writeInt(loc.getX());
+            out.writeInt(loc.getY());
         }
         out.flush();
     }
 
-    public static List<Localizacao> deserialize(DataInputStream in) throws IOException {
+    public static ListObject deserialize(DataInputStream in) throws IOException {
         int size = in.readInt();
-        List<Localizacao> objects = new ArrayList<>(size);
+        List<Localizacao> objects = new ArrayList<>();
 
         for (int i = 0; i < size; i++) {
             Localizacao c = Localizacao.deserialize(in);
             objects.add(c);
         }
-        return objects;
-
+        return new ListObject(size, objects);
     }
 }

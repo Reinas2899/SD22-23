@@ -25,25 +25,21 @@ public class Client {
         //COISAS QUE VÊM DO SERVER
         new Thread(() -> {
         while (true) {
-
             try {
                     DataInputStream in = new DataInputStream(s.getInputStream());
                     Message packet = Message.deserialize(in);
                     System.out.println(packet);
                     Object message = packet.getMessage();
-
-
-
             switch (packet.getType()) {
                 case SUCCESS_RESPONSE:
-
                     System.out.println(message);
                     menu2(out);
 
 
                     break;
                 case LIST_SCOOTERS:
-                    System.out.println(message.toString());
+                    System.out.println("Selecione uma Localizaçao: \n");
+                    imprimeListas((ListObject) message);
                     menu2(out);
 
                     break;
