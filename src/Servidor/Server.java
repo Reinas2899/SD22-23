@@ -1,15 +1,15 @@
 package Servidor;
 
 import Entidades.*;
-import Servidor.Message.*;
+import Servidor.Message.Message;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-
 import java.util.*;
-
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
 
 
 public class Server {
@@ -20,15 +20,20 @@ public class Server {
     private Map<String, Reservation> activeReservations;
     private static Map<String, Utilizador> contasAtivas;
     private static Lock l = new ReentrantLock();
-    private static Map<String,Trotinete> trotinetes;
-    private static List<Recompensa> recompensas;
+    private static Map<Localizacao,Integer> trotinetes = new HashMap<>();
+    private static Map<Localizacao,Integer> recompensas = new HashMap<>();
+    private static final int tamanhoMapa = 20;
+    private static final int numeroTroti = 100;
+    private static final int distanciaUser = 5;
+
 
     //Lista de threads ativas, aka, clientes/users ativos
 
 
     public static void main(String[] args) throws IOException {
         ServerSocket ss = new ServerSocket(4999);
-        preencheMapaTroti(20);
+        preencheMapaTroti(numeroTroti);
+        geraRecompensa(10,10);
 
         while (true) {
             Socket s = ss.accept();
@@ -66,12 +71,12 @@ public class Server {
                             break;
                         case NEARBY_SCOOTERS:
                             if (message instanceof Localizacao userLocation) {
-                                List<Trotinete> lista = nearbyScooter(10,userLocation);
+                                List<Localizacao> lista = nearbyScooter(distanciaUser,userLocation);
                                 if (lista.isEmpty()){
                                     out.writeUTF("Nenhuma scooter nas proximidades.");
                                 }
                                 out.writeInt(lista.size());
-                                for (Trotinete t: lista) {
+                                for (Localizacao t: lista) {
                                     t.serialize(out);
                                 }
                             }
@@ -84,13 +89,13 @@ public class Server {
                             break;
                         case NEARBY_REWARDS:
                             if (message instanceof Localizacao userLocation) {
-                                List<Recompensa> lista = nearbyRecompensa(10,userLocation);
+                                List<Localizacao> lista = nearbyRecompensa(distanciaUser,userLocation);
                                 if (lista.isEmpty()){
                                     out.writeUTF("Nenhuma recompensa nas proximidades.");
                                 }
                                 out.writeInt(lista.size());
-                                for (Recompensa r: lista) {
-                                    r.serialize(out);
+                                for (Localizacao l: lista) {
+                                    l.serialize(out);
                                 }
                             }
                                 //check rewards close by
@@ -99,12 +104,27 @@ public class Server {
                                 ;
                             break;
                         case START_TRIP:
-                            if (message instanceof Localizacao userLocation)
-                                //check timestamp and save in reservation
-                                //save starting location
-                                ;
+                            if (message instanceof Localizacao userLocation) {
+                                l.lock();
+                                try {
+                                    trotinetes.put(userLocation,trotinetes.get(userLocation)-1);
+                                } finally {
+                                    l.unlock();
+                                }
+                            }
+
+
                             break;
                         case END_TRIP:
+
+                            if (message instanceof Localizacao userLocation) {
+                                l.lock();
+                                try {
+                                    trotinetes.put(userLocation,trotinetes.get(userLocation)+1);
+                                } finally {
+                                    l.unlock();
+                                }
+                            }
                             //TODO
                             break;
                     }
@@ -117,9 +137,18 @@ public class Server {
         }
     }
 
+    public static void criamapaTroti(int n){
+        trotinetes= new HashMap<>();
+                for (int x = 0; x <= n; x++) {
+                    for (int y = 0; y <= n; y++) {
+                        Localizacao l =new Localizacao(x,y);
+                        if(!trotinetes.containsKey(l)) trotinetes.put(l, 0);
 
+                    }
+                }
+            }
 
-            public static void login(Utilizador user, DataOutputStream out) throws IOException{
+    public static void login(Utilizador user, DataOutputStream out) throws IOException{
 
                 if(existsUser(user.getUsername(), user.getPassword())){
                     l.lock();
@@ -171,21 +200,27 @@ public class Server {
             }
 
             public static void registaUser(Utilizador user, DataOutputStream out) throws IOException{
-                if (existsUser(user.getUsername(), user.getPassword())) {
+                l.lock();
+                try {
+                    if (existsUser(user.getUsername(), user.getPassword())) {
 
                         out.writeUTF("Utilizador já existe!");
                         out.flush();
-                } else {
+                    } else {
 
-                    File file = new File("registos.txt");
-                    FileWriter fr = new FileWriter(file, true);
-                    BufferedWriter br = new BufferedWriter(fr);
-                    PrintWriter pr = new PrintWriter(br);
-                    pr.println(user.toStringAccountInfo());
-                    pr.close();
-                    br.close();
-                    fr.close();
+                        File file = new File("registos.txt");
+                        FileWriter fr = new FileWriter(file, true);
+                        BufferedWriter br = new BufferedWriter(fr);
+                        PrintWriter pr = new PrintWriter(br);
+                        pr.println(user.toStringAccountInfo());
+                        pr.close();
+                        br.close();
+                        fr.close();
 
+                    }
+                }
+                finally {
+                    l.unlock();
                 }
 
             }
@@ -194,43 +229,58 @@ public class Server {
         Server.contasAtivas = contasAtivas;
     }
 
-    public void geraRecompensa(){
-
+    public static void geraRecompensa(int n, int creditos){
+        criaMapaRecompensas();
+        int i =1;
 
         Random random = new Random();
-        Localizacao l = new Localizacao(random.nextInt(0,20), random.nextInt(0,20));
-        Recompensa r = new Recompensa(random.nextInt(0,10), l);
+        while(i<=n) {
+            Localizacao l = new Localizacao(random.nextInt(0,tamanhoMapa), random.nextInt(0,tamanhoMapa));
+            if(recompensas.get(l)==0){
+                recompensas.put(l,creditos);
+            }
+            else i--;
+            i++;
+        }
+        System.out.println(recompensas);
 
-        recompensas.add(r);
+    }
 
+    public static void criaMapaRecompensas(){
+        recompensas= new HashMap<>();
+        for (int x = 0; x <= tamanhoMapa; x++) {
+            for (int y = 0; y <= tamanhoMapa; y++) {
+                Localizacao l =new Localizacao(x,y);
+                if(!recompensas.containsKey(l)) recompensas.put(l, 0);
+
+            }
+
+
+        }
 
     }
 
     public static void preencheMapaTroti(int n){
         int i = 1;
+        criamapaTroti(tamanhoMapa);
         Random random = new Random();
         while(i<=n) {
-            Localizacao l = new Localizacao(random.nextInt(0,20), random.nextInt(0,20));
-            for (Trotinete t1: trotinetes.values()) {
-                if(t1.getLocalizacao() == l){
-                    l =  new Localizacao(random.nextInt(0,20), random.nextInt(0,20));
-                }
-
-            }
-            Trotinete t = new Trotinete(Integer.toString(i),false,l);
-            trotinetes.put(t.getIdTrotinete(),t);
-                    i++;
+            Localizacao l = new Localizacao(random.nextInt(0,tamanhoMapa), random.nextInt(0,tamanhoMapa));
+            int t = trotinetes.get(l);
+            trotinetes.put(l,t+1);
+            i++;
         }
+        //System.out.println(trotinetes);
     }
 
-    public static List<Trotinete> nearbyScooter(int d, Localizacao l){
-        List<Trotinete> lista = new ArrayList<>();
+    public static List<Localizacao> nearbyScooter(int d, Localizacao l){
+        List<Localizacao> lista = new ArrayList<>();
         double distance;
 
-        for (Trotinete t: trotinetes.values()) {
+        for (Localizacao t: trotinetes.keySet()) {
 
-            distance = distanciaLocalizacao(t.getLocalizacao(),l);
-            if(distance <=d){
+            distance = distanciaLocalizacao(t,l);
+            if(distance <=d && trotinetes.get(t)>0){
                 lista.add(t);
             }
         }
@@ -239,16 +289,16 @@ public class Server {
 
     }
 
-    public static List<Recompensa> nearbyRecompensa(int d, Localizacao l){
-        List<Recompensa> lista =new ArrayList<>();
+    public static List<Localizacao> nearbyRecompensa(int d, Localizacao l){
+        List<Localizacao> lista =new ArrayList<>();
 
         double distance;
 
-        for (Recompensa r: recompensas) {
+        for (Localizacao l1: recompensas.keySet()) {
 
-            distance = distanciaLocalizacao(r.getL(),l);
-            if(distance <=d){
-                lista.add(r);
+            distance = distanciaLocalizacao(l1,l);
+            if(distance <=d && recompensas.get(l1)>0){
+                lista.add(l1);
             }
         }
 

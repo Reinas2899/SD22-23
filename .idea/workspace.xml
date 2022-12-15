@@ -6,7 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="a194b99e-beb7-4e90-af34-5c81dcd1bf77" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/registos.txt" beforeDir="false" afterPath="$PROJECT_DIR$/registos.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Client/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Client/Client.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Entidades/Localizacao.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Entidades/Localizacao.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Entidades/Recompensa.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Entidades/Recompensa.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Servidor/RequestManager.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Servidor/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Servidor/Server.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -39,7 +43,7 @@
     &quot;last_opened_file_path&quot;: &quot;C:/Users/Renato Gomes/OneDrive/Ambiente de Trabalho/Universidade/3º ano/DSS/F8&quot;
   }
 }</component>
-  <component name="RunManager" selected="Application.Client2">
+  <component name="RunManager" selected="Application.Server">
     <configuration name="Client" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Client.Client" />
       <module name="SD22-23" />
@@ -80,8 +84,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.Client" />
         <item itemvalue="Application.Server" />
+        <item itemvalue="Application.Client" />
       </list>
     </recent_temporary>
   </component>

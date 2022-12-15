@@ -3,13 +3,34 @@ package Entidades;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Objects;
 
 public class Recompensa {
     int creditos;
     Localizacao l;
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Recompensa that = (Recompensa) o;
+        return creditos == that.creditos && l.equals(that.l);
+    }
 
-    public Recompensa(int creditos,Localizacao l) {
+    @Override
+    public int hashCode() {
+        return Objects.hash(creditos, l);
+    }
+
+    @Override
+    public String toString() {
+        return "Recompensa{" +
+                "creditos=" + creditos +
+                ", l=" + l +
+                '}';
+    }
+
+    public Recompensa(int creditos, Localizacao l) {
         this.creditos = creditos;
         this.l = l;
 
