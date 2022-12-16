@@ -66,12 +66,12 @@ public class Menu {
         if (opt== 1){
             System.out.println("Insira a coordenada X :");
             int x = ler.nextInt();
-            ler.nextLine();
             System.out.println("Insira a coordenad Y :");
             int y = ler.nextInt();
-            ler.nextLine();
-            Message m=new Message(NEARBY_SCOOTERS,new Localizacao(x,y));
+            Localizacao l = new Localizacao(x,y);
+            Message m=new Message(NEARBY_SCOOTERS,l);
             m.serialize(out);
+            System.out.println("enviei nearby scooters");
         }
         if (opt==2){
             System.out.println("Insira a coordenada X para iniciar viagem :");
@@ -92,7 +92,8 @@ public class Menu {
             System.out.println("Insira a coordenada Y :");
             int y = ler.nextInt();
             ler.nextLine();
-            Message m=new Message(SCOOTER_RESERVATION_REQUEST,new Localizacao(x,y));
+            Localizacao l = new Localizacao(x,y);
+            Message m= new Message(SCOOTER_RESERVATION_REQUEST ,l);
             m.serialize(out);
             System.out.println("Enviei SCOOTER_RESERVATION_REQUEST");
             System.out.println(m.toString());

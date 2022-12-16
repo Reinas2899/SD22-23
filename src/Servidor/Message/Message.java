@@ -70,13 +70,16 @@ public class Message {
             case NEARBY_SCOOTERS:
                 if(message instanceof Localizacao loc)
                     loc.serialize(out);
+                break;
 
             case NEARBY_REWARDS:
                 if(message instanceof Localizacao loc)
                     loc.serialize(out);
+                break;
             case START_TRIP:
                 if(message instanceof Localizacao loc)
                     loc.serialize(out);
+                System.out.println("Start Trip");
                 break;
             case LIST_SCOOTERS:
                 if(message instanceof ListObject list)
@@ -104,6 +107,7 @@ public class Message {
         }
 
         out.flush();
+        System.out.println("Menssagem serialize");
     }
 
 }

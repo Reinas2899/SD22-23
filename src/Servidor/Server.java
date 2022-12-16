@@ -4,22 +4,20 @@ import Entidades.*;
 import Servidor.Message.ListObject;
 import Servidor.Message.Message;
 import Servidor.Message.SuccessResponse;
-
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
 import static Servidor.Message.MessageType.*;
 
 
 public class Server {
    //Porque não ter um map das trotinetes?
-
-
-
     private Map<String, Reservation> activeReservations;
     private static Map<String, Utilizador> contasAtivas = new HashMap<>();
     private static Lock l = new ReentrantLock();
@@ -28,9 +26,10 @@ public class Server {
     private static final int tamanhoMapa = 20;
     private static final int numeroTroti = 100;
     private static final int distanciaUser = 5;
-
-
     //Lista de threads ativas, aka, clientes/users ativos
+    static int numThreads = 5;
+    static ThreadPoolExecutor executor = new ThreadPoolExecutor(numThreads, numThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+
 
 
     public static void main(String[] args) throws IOException {
@@ -107,6 +106,11 @@ public class Server {
                                     for (Localizacao l : lista1) {
                                         l.serialize(out);
                                     }
+                                    String notificationMessage = "This is a notification";
+                                    String recipient = "recipient@example.com";
+                                    NotificationThread notificationThread = new NotificationThread(notificationMessage, recipient);
+                                    executor.execute(notificationThread);
+
                                 }
                             }
                             case START_TRIP -> {
@@ -140,6 +144,7 @@ public class Server {
                     }
                 }
             }).start();
+            executor.shutdown();
 
         }
     }
@@ -211,11 +216,9 @@ public class Server {
                 l.lock();
                 try {
                     if (existsUser(user.getUsername(), user.getPassword())) {
-
                         out.writeUTF("Utilizador já existe!");
                         out.flush();
                     } else {
-
                         File file = new File("registos.txt");
                         FileWriter fr = new FileWriter(file, true);
                         BufferedWriter br = new BufferedWriter(fr);
@@ -224,13 +227,11 @@ public class Server {
                         pr.close();
                         br.close();
                         fr.close();
-
                     }
                 }
                 finally {
                     l.unlock();
                 }
-
             }
 
     public static void setContasAtivas(Map<String, Utilizador> contasAtivas) {
@@ -238,9 +239,9 @@ public class Server {
     }
 
     public static void geraRecompensa(int n, int creditos){
+
         criaMapaRecompensas();
         int i =1;
-
         Random random = new Random();
         while(i<=n) {
             Localizacao l = new Localizacao(random.nextInt(0,tamanhoMapa), random.nextInt(0,tamanhoMapa));
@@ -258,12 +259,8 @@ public class Server {
             for (int y = 0; y <= tamanhoMapa; y++) {
                 Localizacao l =new Localizacao(x,y);
                 if(!recompensas.containsKey(l)) recompensas.put(l, 0);
-
             }
-
-
         }
-
     }
 
     public static void preencheMapaTroti(int n){
@@ -291,15 +288,11 @@ public class Server {
             }
         }
         return lista;
-
-
     }
 
     public static List<Localizacao> nearbyRecompensa(int d, Localizacao l){
         List<Localizacao> lista =new ArrayList<>();
-
         double distance;
-
         for (Localizacao l1: recompensas.keySet()) {
 
             distance = distanciaLocalizacao(l1,l);
@@ -307,22 +300,18 @@ public class Server {
                 lista.add(l1);
             }
         }
-
-
         return lista;
     }
 
     public static double distanciaLocalizacao(Localizacao l1, Localizacao l2){
         return Math.hypot(l2.getX()- l1.getX(), l2.getY() - l1.getY());
-
     }
 
     public static float calculaPreco(long startTime, long endTime){
-
         float elapsTime = endTime-startTime;
-
         return (float) (elapsTime*0.2);
     }
+
 
 
 }
