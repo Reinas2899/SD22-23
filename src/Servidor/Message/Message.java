@@ -25,9 +25,9 @@ public class Message {
     }
 
     public MessageType getType(){return this.type;}
-    //public int getType(){return MessageType.toInteger(this.type);}
+
     public void setType (MessageType type){this.type = type;}
-    //public void setType (int type){this.type = MessageType.fromInteger(type);}
+
     public Object getMessage(){return this.message;}
     public void setMessage(Object message){this.message = message;}
 
@@ -42,6 +42,8 @@ public class Message {
             case NEARBY_REWARDS -> message = Localizacao.deserialize(in);
             case START_TRIP -> message = Localizacao.deserialize(in);
             case LIST_SCOOTERS, LIST_REWARDS -> message = ListObject.deserialize(in);
+            case SCOOTER_RESERVATION_REQUEST, SCOOTER_RESERVATION_RESPONSE -> message = Localizacao.deserialize(in);
+            case COST_REWARD -> message = in.readFloat();
             case DESCONNECTION -> {
             }
             default -> {
@@ -83,6 +85,18 @@ public class Message {
             case LIST_REWARDS:
                 if(message instanceof ListObject list)
                     list.serialize(out);
+                break;
+            case SCOOTER_RESERVATION_REQUEST:
+                if(message instanceof Localizacao loc)
+                    loc.serialize(out);
+                break;
+            case SCOOTER_RESERVATION_RESPONSE:
+                if(message instanceof Localizacao loc)
+                    loc.serialize(out);
+                break;
+            case COST_REWARD:
+                if(message instanceof Float custo)
+                    out.writeFloat(custo);
                 break;
             case DESCONNECTION:
             default:

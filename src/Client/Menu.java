@@ -95,6 +95,7 @@ public class Menu {
             Message m=new Message(SCOOTER_RESERVATION_REQUEST,new Localizacao(x,y));
             m.serialize(out);
             System.out.println("Enviei SCOOTER_RESERVATION_REQUEST");
+            System.out.println(m.toString());
 
         }
     }
@@ -127,6 +128,7 @@ public class Menu {
         System.out.println("|1->Iniciar viagem                          |");
         System.out.println("|2->Cancelar reserva                        |");
         System.out.println("----------------------------------------------");
+
 
     }
 

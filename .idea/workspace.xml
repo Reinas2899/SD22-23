@@ -8,7 +8,7 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Client/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Client/Client.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Client/Menu.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Client/Menu.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Servidor/Message/ListObject.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Servidor/Message/ListObject.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Servidor/Message/Message.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Servidor/Message/Message.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Servidor/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Servidor/Server.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -82,8 +82,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.Server" />
         <item itemvalue="Application.Client" />
+        <item itemvalue="Application.Server" />
       </list>
     </recent_temporary>
   </component>

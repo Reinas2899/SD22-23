@@ -12,8 +12,7 @@ import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static Servidor.Message.MessageType.LIST_SCOOTERS;
-import static Servidor.Message.MessageType.SUCCESS_RESPONSE;
+import static Servidor.Message.MessageType.*;
 
 
 public class Server {
@@ -50,35 +49,55 @@ public class Server {
 
                         Message packet = Message.deserialize(in);
                         Object message = packet.getMessage();
-                        //System.out.println(packet.toString());
+                        long startTime = 0;
+
+                        long endTime = 0;
+                        System.out.println(packet.toString());
 
                         switch (packet.getType()) {
-                            case REGISTER:
+                            case REGISTER -> {
                                 if (message instanceof Utilizador registaUser)
                                     registaUser(registaUser, out);
-                                break;
-                            case CONNECTION:
-                                login((Utilizador) message, out);
-                                break;
-                            case DESCONNECTION:
-                                logout(message, out);
-                                //log user out
-                                ;
-                                break;
-                            case NEARBY_SCOOTERS:
-                                System.out.println("vou mandar scooters");
-                                List<Localizacao> lista = nearbyScooter(distanciaUser, (Localizacao) message);
-                                ListObject lo = new ListObject(lista.size(),lista);
-                                Message m =new Message(LIST_SCOOTERS,lo);
-                                m.serialize(out);
-                                System.out.println(m.toString());
-
-                                //check scooters close by
-                                //make a list of them
-                                //send list to user
-                                ;
-                                break;
-                            case NEARBY_REWARDS:
+                            }
+                            case CONNECTION -> {
+                                if (message instanceof Utilizador loginUser)
+                                    login(loginUser, out);
+                            }
+                            case DESCONNECTION -> {
+                                if (message instanceof Utilizador desconnect)
+                                    logout(desconnect, out);
+                            }
+                            case NEARBY_SCOOTERS -> {
+                                if (message instanceof Localizacao loc) {
+                                    System.out.println("vou mandar scooters");
+                                    List<Localizacao> lista = nearbyScooter(distanciaUser, loc);
+                                    ListObject lo = new ListObject(lista.size(), lista);
+                                    Message m = new Message(LIST_SCOOTERS, lo);
+                                    m.serialize(out);
+                                }
+                            }
+                            case SCOOTER_RESERVATION_REQUEST -> {
+                                if (message instanceof Localizacao loc) {
+                                    System.out.println(loc);
+                                    l.lock();
+                                    try {
+                                        if (trotinetes.get(loc) > 0) {
+                                            trotinetes.put(loc, trotinetes.get(loc) - 1);
+                                            Message m = new Message(SCOOTER_RESERVATION_RESPONSE, loc);
+                                            m.serialize(out);
+                                            System.out.println(m.toString());
+                                        } else {
+                                            Message m = new Message(SCOOTER_RESERVATION_RESPONSE, loc);
+                                            m.serialize(out);
+                                            out.writeUTF("Nenhuma Trotinete nessa Localizaçao!");
+                                            System.out.println(m.toString());
+                                        }
+                                    } finally {
+                                        l.unlock();
+                                    }
+                                }
+                            }
+                            case NEARBY_REWARDS -> {
                                 if (message instanceof Localizacao userLocation) {
                                     List<Localizacao> lista1 = nearbyRecompensa(distanciaUser, userLocation);
                                     if (lista1.isEmpty()) {
@@ -89,35 +108,31 @@ public class Server {
                                         l.serialize(out);
                                     }
                                 }
-                                //check rewards close by
-                                //make a list of them
-                                //send list to user
-                                ;
-                                break;
-                            case START_TRIP:
+                            }
+                            case START_TRIP -> {
                                 if (message instanceof Localizacao userLocation) {
                                     l.lock();
                                     try {
                                         trotinetes.put(userLocation, trotinetes.get(userLocation) - 1);
+                                        startTime = System.currentTimeMillis();
                                     } finally {
                                         l.unlock();
                                     }
                                 }
-
-
-                                break;
-                            case END_TRIP:
-
+                            }
+                            case END_TRIP -> {
                                 if (message instanceof Localizacao userLocation) {
                                     l.lock();
                                     try {
                                         trotinetes.put(userLocation, trotinetes.get(userLocation) + 1);
+                                        endTime = System.currentTimeMillis();
                                     } finally {
                                         l.unlock();
                                     }
+                                    Message m = new Message(COST_REWARD, calculaPreco(startTime, endTime));
+                                    m.serialize(out);
                                 }
-                                //TODO
-                                break;
+                            }
                         }
 
                     } catch (Exception e) {
@@ -300,6 +315,13 @@ public class Server {
     public static double distanciaLocalizacao(Localizacao l1, Localizacao l2){
         return Math.hypot(l2.getX()- l1.getX(), l2.getY() - l1.getY());
 
+    }
+
+    public static float calculaPreco(long startTime, long endTime){
+
+        float elapsTime = endTime-startTime;
+
+        return (float) (elapsTime*0.2);
     }
 
 

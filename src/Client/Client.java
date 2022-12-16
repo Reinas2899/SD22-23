@@ -41,20 +41,15 @@ public class Client {
                         System.out.println("Login efetuado com sucesso");
                         menu2(out);
                     }
-
                     break;
                 case LIST_SCOOTERS:
                     imprimeListas((ListObject) message);
                     menu2(out);
-
                     break;
                 case LIST_REWARDS:
-                        //check rewards close by
-                        //make a list of them
-                        //send list to user
-                        ;
                     break;
                 case SCOOTER_RESERVATION_RESPONSE:
+                    System.out.println(message.toString());
                     menuScooterReserve(out);
                     break;
                 case COST_REWARD:
