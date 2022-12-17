@@ -25,6 +25,7 @@ public class Server {
     private static Map<Localizacao,Integer> recompensas = new HashMap<>();
     private static final int tamanhoMapa = 20;
     private static final int numeroTroti = 100;
+
     private static final int distanciaUser = 5;
     //Lista de threads ativas, aka, clientes/users ativos
     static int numThreads = 5;
@@ -76,6 +77,7 @@ public class Server {
                                 }
                             }
                             case SCOOTER_RESERVATION_REQUEST -> {
+                                //tem de enviar um codigo de reservas
                                 if (message instanceof Localizacao loc) {
                                     System.out.println(loc);
                                     l.lock();
@@ -114,6 +116,7 @@ public class Server {
                                 }
                             }
                             case START_TRIP -> {
+                                //tem de enviar para o cliente uma confirmaçao
                                 if (message instanceof Localizacao userLocation) {
                                     l.lock();
                                     try {
