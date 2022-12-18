@@ -297,6 +297,8 @@ public class Server {
         {
             //Se tiver trotinetes, então fazemos uma reserva e retiramos a reserva da localização
             if(trotinetes.get(newReserva.getLocation()) > 0){
+                //Enquanto houver uma reserva com código igual, queremos mudar ate ser diferente
+                while(reservasAtivas.containsKey(reserva.getReservationCode())) reserva.setReservationCode();
                 message = reserva.getReservationCode();
                 reservasAtivas.put(reserva.getReservationCode(), reserva);
                 trotinetes.put(reserva.getStartLocation(), trotinetes.get(reserva.getStartLocation()) - 1);

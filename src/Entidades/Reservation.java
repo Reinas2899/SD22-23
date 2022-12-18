@@ -35,8 +35,8 @@ public class Reservation {
         return reservationCode;
     }
 
-    public void setReservationCode(String reservationCode) {
-        this.reservationCode = reservationCode;
+    public void setReservationCode() {
+        generateRandomCode();
     }
 
     public String getUser() {
