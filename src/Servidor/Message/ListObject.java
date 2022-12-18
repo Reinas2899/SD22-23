@@ -27,10 +27,10 @@ public class ListObject {
 
     @Override
     public String toString() {
-        return "ListObject{" +
-                "size=" + size +
-                ", objects=" + objects +
-                '}';
+        return "ListObject{ " +
+                "size = " + size +
+                ", objects = " + objects +
+                " }";
     }
 
     private int size;

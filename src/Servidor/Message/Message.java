@@ -13,10 +13,10 @@ public class Message {
 
     @Override
     public String toString() {
-        return "Message{" +
-                "type=" + type.toString() +
-                "message=" + message.toString() +
-                '}';
+        return "Message{ " +
+                "type = " + type.toString() + ", " +
+                "message = " + message.toString() +
+                " }";
     }
 
     public Message(MessageType type, Object message){
@@ -25,7 +25,6 @@ public class Message {
     }
 
     public MessageType getType(){return this.type;}
-
     public void setType (MessageType type){this.type = type;}
 
     public Object getMessage(){return this.message;}
@@ -35,17 +34,12 @@ public class Message {
         MessageType type = MessageType.fromInteger(in.readInt());
         Object message = new Object();
         switch (type) {
-            case SUCCESS_RESPONSE -> message = SuccessResponse.deserialize(in);
-            case REGISTER -> message = Utilizador.deserializeBasics(in);
-            case CONNECTION -> message = Utilizador.deserializeBasics(in);
-            case NEARBY_SCOOTERS -> message = Localizacao.deserialize(in);
-            case NEARBY_REWARDS -> message = Localizacao.deserialize(in);
-            case START_TRIP -> message = Localizacao.deserialize(in);
+            case REGISTER, CONNECTION -> message = Utilizador.deserializeBasics(in);
+            case GENERIC, CONNECTION_RESPONSE, DESCONNECTION_RESPONSE, SCOOTER_RESERVATION_RESPONSE, DESCONNECTION  -> message =in.readUTF();
+            case NEARBY_SCOOTERS, NEARBY_REWARDS -> message = Localizacao.deserialize(in);
+            case START_TRIP, END_TRIP -> message = ReservationMessage.deserialize(in);
             case LIST_SCOOTERS, LIST_REWARDS -> message = ListObject.deserialize(in);
-            case SCOOTER_RESERVATION_REQUEST, SCOOTER_RESERVATION_RESPONSE -> message = Localizacao.deserialize(in);
             case COST_REWARD -> message = in.readFloat();
-            case DESCONNECTION -> {
-            }
             default -> {
             }
         }
@@ -55,59 +49,45 @@ public class Message {
     public void serialize(DataOutputStream out) throws IOException {
         out.writeInt(MessageType.toInteger(this.type));
         switch (this.type){
-            case SUCCESS_RESPONSE:
-                if(message instanceof SuccessResponse suRe)
-                    suRe.serialize(out);
-                break;
+
             case REGISTER:
-                if(message instanceof Utilizador user)
-                    user.serializeBasics(out);
-                break;
             case CONNECTION:
                 if(message instanceof Utilizador user)
                     user.serializeBasics(out);
                 break;
-            case NEARBY_SCOOTERS:
-                if(message instanceof Localizacao loc)
-                    loc.serialize(out);
+            case GENERIC:
+            case CONNECTION_RESPONSE:
+            case DESCONNECTION_RESPONSE:
+            case SCOOTER_RESERVATION_RESPONSE:
+            case DESCONNECTION:
+                if(message instanceof String connRes)
+                    out.writeUTF(connRes);
                 break;
-
+            case NEARBY_SCOOTERS:
             case NEARBY_REWARDS:
                 if(message instanceof Localizacao loc)
                     loc.serialize(out);
                 break;
             case START_TRIP:
-                if(message instanceof Localizacao loc)
-                    loc.serialize(out);
-                System.out.println("Start Trip");
+            case END_TRIP:
+                if(message instanceof ReservationMessage res)
+                    res.serialize(out);
                 break;
             case LIST_SCOOTERS:
-                if(message instanceof ListObject list)
-                    list.serialize(out);
-                break;
             case LIST_REWARDS:
                 if(message instanceof ListObject list)
                     list.serialize(out);
-                break;
-            case SCOOTER_RESERVATION_REQUEST:
-                if(message instanceof Localizacao loc)
-                    loc.serialize(out);
-                break;
-            case SCOOTER_RESERVATION_RESPONSE:
-                if(message instanceof Localizacao loc)
-                    loc.serialize(out);
                 break;
             case COST_REWARD:
                 if(message instanceof Float custo)
                     out.writeFloat(custo);
                 break;
-            case DESCONNECTION:
+
             default:
                 break;
         }
 
         out.flush();
-        System.out.println("Menssagem serialize");
     }
 
 }
