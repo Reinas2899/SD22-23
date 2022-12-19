@@ -25,7 +25,7 @@ public class Reservation {
         generateRandomCode();
         this.user = user;
         this.startLocation = loc;
-        this.startTime = System.currentTimeMillis();
+
     }
 
 
@@ -51,8 +51,8 @@ public class Reservation {
         return startTime;
     }
 
-    public void setStartTime(Long startTime) {
-        this.startTime = startTime;
+    public void setStartTime() {
+        this.startTime = System.currentTimeMillis();
     }
 
     public Long getEndTime() {

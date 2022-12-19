@@ -61,7 +61,9 @@ public class Menu {
         }
 
         if (opt==3){
-            new Message(START_TRIP,null).serialize(out);
+            System.out.println("Insira código de reserva :");
+            String reservationCode = ler.nextLine();
+            new Message(START_TRIP,reservationCode).serialize(out);
             System.out.println("[DEBUG] Sent START_TRIP to server");
         }
         if (opt==4){

@@ -11,7 +11,7 @@ public enum MessageType {
     LIST_SCOOTERS,
     NEARBY_REWARDS,
     LIST_REWARDS,
-    //SCOOTER_RESERVATION_REQUEST,
+    SCOOTER_RESERVATION_REQUEST,
     SCOOTER_RESERVATION_RESPONSE,
     START_TRIP,
     END_TRIP,
@@ -33,6 +33,7 @@ public enum MessageType {
             case 11 -> START_TRIP;
             case 12 -> END_TRIP;
             case 13 -> COST_REWARD;
+            case 14 -> SCOOTER_RESERVATION_REQUEST;
             default -> null;
         };
     }
@@ -53,6 +54,7 @@ public enum MessageType {
             case START_TRIP -> 11;
             case END_TRIP -> 12;
             case COST_REWARD -> 13;
+            case SCOOTER_RESERVATION_REQUEST -> 14;
             default -> -1;
         };
     }

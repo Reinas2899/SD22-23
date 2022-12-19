@@ -147,11 +147,14 @@ public class Server {
 
                             }
                         }
+                        case SCOOTER_RESERVATION_REQUEST -> {
+
+                        }
                         case START_TRIP -> {
                             // Dado a localização do user, retiramos uma trotinete da localização e enviamos um
                             // código de reserva. Caso nao haja trotinetes, enviamos uma mensagem de insucesso.
                             if (message instanceof ReservationMessage newReserva) {
-                                startTrip(newReserva, out);
+                                startTrip(s.getPort(), out);
                             }
                         }
                         case END_TRIP -> {
@@ -372,6 +375,30 @@ public class Server {
 
                 }
             }
+        } finally {
+            // Release the write lock after modifying the list
+            writeLock.unlock();
+        }
+        new Message(SCOOTER_RESERVATION_RESPONSE, message).serialize(out);
+        System.out.println("[DEBUG] Sending a SCOOTER_RESERVATION_RESPONSE");
+    }
+
+    /*****************************************************************
+     * FUNCTION:     startTrip
+     * INPUT:        newReserva (username e localização inicial)
+     * DESCRIPTION:  1- Faz uma nova reserva com um código aleatório
+     *               2- Verifica se há trotinetes livres na localização
+     *               3- Retira uma trotinete dessa localização
+     *               4- Envia mensagem de resposta
+     *****************************************************************/
+    private static void startTrip(String reservationCode, DataOutputStream out) throws IOException {
+
+        // Acquire the write lock before modifying the list
+        writeLock.lock();
+        try {
+            Reservation reserva = reservasAtivas.get(reservationCode);
+            reserva.setStartTime();
+            reservasAtivas.put(reservationCode, reserva);
         } finally {
             // Release the write lock after modifying the list
             writeLock.unlock();

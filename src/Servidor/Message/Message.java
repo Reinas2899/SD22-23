@@ -35,10 +35,10 @@ public class Message {
         Object message = new Object();
         switch (type) {
             case REGISTER, CONNECTION -> message = Utilizador.deserializeBasics(in);
-            case GENERIC, CONNECTION_RESPONSE, DESCONNECTION_RESPONSE, SCOOTER_RESERVATION_RESPONSE  -> message =in.readUTF();
+            case GENERIC, CONNECTION_RESPONSE, DESCONNECTION_RESPONSE, START_TRIP, SCOOTER_RESERVATION_RESPONSE  -> message =in.readUTF();
             case NEARBY_SCOOTERS, NEARBY_REWARDS -> message = Localizacao.deserialize(in);
-            case START_TRIP, END_TRIP -> message = ReservationMessage.deserialize(in);
-            case LIST_SCOOTERS, LIST_REWARDS -> message = ListObject.deserialize(in);
+            case END_TRIP -> message = ReservationMessage.deserialize(in);
+            case LIST_SCOOTERS, LIST_REWARDS, SCOOTER_RESERVATION_REQUEST -> message = ListObject.deserialize(in);
             case COST_REWARD -> message = in.readFloat();
             case DESCONNECTION ->{}
             default -> {
@@ -60,15 +60,16 @@ public class Message {
             case CONNECTION_RESPONSE:
             case DESCONNECTION_RESPONSE:
             case SCOOTER_RESERVATION_RESPONSE:
+            case START_TRIP:
                 if(message instanceof String connRes)
                     out.writeUTF(connRes);
                 break;
             case NEARBY_SCOOTERS:
             case NEARBY_REWARDS:
+            case SCOOTER_RESERVATION_REQUEST:
                 if(message instanceof Localizacao loc)
                     loc.serialize(out);
                 break;
-            case START_TRIP:
             case END_TRIP:
                 if(message instanceof ReservationMessage res)
                     res.serialize(out);
@@ -82,6 +83,7 @@ public class Message {
                 if(message instanceof Float custo)
                     out.writeFloat(custo);
                 break;
+
             case DESCONNECTION:
             default:
                 break;
