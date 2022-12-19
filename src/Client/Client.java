@@ -64,7 +64,7 @@ public class Client {
 
                             System.out.println(message);
 
-                            if (message.equals("Login Incorreto!")) menuSemConta(out);
+                            if (message.equals("Login Incorreto!") || message.equals("Este user já está logado noutro cliente.")) menuSemConta(out);
                             else menuLogado(out);
 
                             break;

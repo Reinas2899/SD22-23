@@ -12,9 +12,6 @@ public class Utilizador {
     private int x;
     private int y;
 
-    private int x;
-    private int y;
-
 
     public Utilizador(String username, int creditos, String password, int x, int y) {
         this.username = username;
@@ -34,22 +31,6 @@ public class Utilizador {
 
    public String getUsername() {
         return username;
-    }
-
-    public int getX() {
-        return x;
-    }
-
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public void setY(int y) {
-        this.y = y;
     }
 
     public void setUsername(String username) {
