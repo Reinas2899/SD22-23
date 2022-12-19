@@ -36,9 +36,9 @@ public class Message {
         switch (type) {
             case REGISTER, CONNECTION -> message = Utilizador.deserializeBasics(in);
             case GENERIC, CONNECTION_RESPONSE, DESCONNECTION_RESPONSE, START_TRIP, SCOOTER_RESERVATION_RESPONSE  -> message =in.readUTF();
-            case NEARBY_SCOOTERS, NEARBY_REWARDS -> message = Localizacao.deserialize(in);
+            case NEARBY_SCOOTERS, NEARBY_REWARDS,SCOOTER_RESERVATION_REQUEST -> message = Localizacao.deserialize(in);
             case END_TRIP -> message = ReservationMessage.deserialize(in);
-            case LIST_SCOOTERS, LIST_REWARDS, SCOOTER_RESERVATION_REQUEST -> message = ListObject.deserialize(in);
+            case LIST_SCOOTERS, LIST_REWARDS -> message = ListObject.deserialize(in);
             case COST_REWARD -> message = in.readFloat();
             case DESCONNECTION ->{}
             default -> {

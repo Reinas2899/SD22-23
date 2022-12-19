@@ -83,11 +83,11 @@ public class Menu {
 
         if (opt== 1){
             Localizacao loc = menuGetLocalização();
-            System.out.println("Insira código de reserva :");
-            String reservationCode = ler.nextLine();
+            //System.out.println("Insira código de reserva :");
+            //String reservationCode = ler.nextLine();
             System.out.println("[DEBUG] Sent END_TRIP to server");
             new Message(END_TRIP, loc).serialize(out);
-        }
+           }
 
     }
 
@@ -102,11 +102,12 @@ public class Menu {
         int opt = ler.nextInt(); ler.nextLine();
 
         if (opt== 1){
-            Localizacao loc = menuGetLocalização();
+            //Localizacao loc = menuGetLocalização();
             System.out.println("Insira código de reserva :");
             String reservationCode = ler.nextLine();
             System.out.println("[DEBUG] Sent START_TRIP to server");
-            new Message(START_TRIP, loc).serialize(out);
+            new Message(START_TRIP, reservationCode).serialize(out);
+            menuViagem(out);
         }
         if (opt==2)
         {

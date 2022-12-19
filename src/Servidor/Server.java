@@ -149,7 +149,7 @@ public class Server {
                         }
                         case SCOOTER_RESERVATION_REQUEST -> {
                             System.out.println("antes");
-                            if (message instanceof ReservationMessage loc) {
+                            if (message instanceof Localizacao loc) {
                                 System.out.println("entrei em srr");
                                 reserveScooter(out,loc);
                             }
@@ -158,15 +158,15 @@ public class Server {
                         case START_TRIP -> {
                             // Dado a localização do user, retiramos uma trotinete da localização e enviamos um
                             // código de reserva. Caso nao haja trotinetes, enviamos uma mensagem de insucesso.
-                            if (message instanceof Localizacao loc) {
-                                //System.out.println("entrei start trip server");
-                                //como vou buscar o codigo?
-                               // startTrip(s.getPort(),co, out);
+
+                            if (message instanceof String res) {
+                                System.out.println("Aqui");
+                                startTrip(res,out);
                             }
                         }
                         case END_TRIP -> {
-                            if (message instanceof ReservationMessage reservation) {
-                                endTrip(reservation, out);
+                            if (message instanceof Localizacao loc) {
+                                endTrip(loc, out);
                             }
                         }
                     }
@@ -363,18 +363,17 @@ public class Server {
      *               4- Envia mensagem de resposta
      *****************************************************************/
 
-    private static void reserveScooter( DataOutputStream out,ReservationMessage newReserva) throws IOException {
+    private static void reserveScooter( DataOutputStream out,Localizacao localizacao) throws IOException {
         //start time is automatically put here
         //reservation code too
-        Reservation reserva = new Reservation(newReserva.getInformation(), newReserva.getLocation());
+        Reservation reserva = new Reservation("", localizacao);
         String message = "Nenhuma Trotinete nessa Localizaçao!";
-        Localizacao aux = newReserva.getLocation();
 
         // Acquire the write lock before modifying the list
         writeLock.lock();
         try {
             for (Localizacao loc:trotinetes) {
-                if (loc.getX()==aux.getX() && loc.getY()==aux.getY() && loc.getNumTrotinetes() > 0) {
+                if (loc.getX()== localizacao.getX() && loc.getY()== localizacao.getY() && loc.getNumTrotinetes() > 0) {
                     //Enquanto houver uma reserva com código igual, queremos mudar ate ser diferente
                     while (reservasAtivas.containsKey(reserva.getReservationCode())) reserva.setReservationCode();
                     message = reserva.getReservationCode();
@@ -404,12 +403,14 @@ public class Server {
         // Acquire the write lock before modifying the list
         writeLock.lock();
         try {
+            System.out.println("Entrei");
             Reservation reserva = reservasAtivas.get(reservationCode);
             reserva.setStartTime();
             reservasAtivas.put(reservationCode, reserva);
         } finally {
             // Release the write lock after modifying the list
             writeLock.unlock();
+            System.out.println("Sai");
         }
        // new Message(SCOOTER_RESERVATION_RESPONSE, message).serialize(out);
         //System.out.println("[DEBUG] Sending a SCOOTER_RESERVATION_RESPONSE");
@@ -423,7 +424,7 @@ public class Server {
      *               3- Adicionar trotinete à localização
      *               4- Calcular e enviar custo e recompensas ao cliente
      *****************************************************************/
-    private static void endTrip(ReservationMessage reserva, DataOutputStream out) throws IOException {
+    private static void endTrip(Localizacao localizacao, DataOutputStream out) throws IOException {
         String message = "Nenhuma Trotinete nessa Localizaçao!";
         Reservation reservation = new Reservation();
 
