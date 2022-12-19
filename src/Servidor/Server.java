@@ -13,7 +13,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import static Servidor.Message.MessageType.*;
 
 
@@ -24,10 +27,14 @@ public class Server {
     private static Map<Integer, Utilizador> contasAtivas = new HashMap<>(); //<port, user>
     private List<Integer> notificationBros = new ArrayList<>();
     private static Lock l = new ReentrantLock();
-    private static Map<Localizacao,Integer> trotinetes = new HashMap<>();
+    private static List<Localizacao> trotinetes = new ArrayList<>();
     private static Map<Localizacao,Integer> recompensas = new HashMap<>();
     private static final int tamanhoMapa = 20;
     private static final int numeroTroti = 100;
+
+    private static ReadWriteLock rwLock = new ReentrantReadWriteLock();
+    private static Lock readLock = rwLock.readLock();
+    private static Lock writeLock = rwLock.writeLock();
 
     private static final int distanciaUser = 5;
     //Lista de threads ativas, aka, clientes/users ativos
@@ -166,11 +173,12 @@ public class Server {
 
 
     public static void criaMapaTroti(int n){
-        trotinetes= new HashMap<>();
+
                 for (int x = 0; x <= n; x++) {
                     for (int y = 0; y <= n; y++) {
-                        Localizacao l =new Localizacao(x,y);
-                        if(!trotinetes.containsKey(l)) trotinetes.put(l, 0);
+                        Localizacao l =new Localizacao(x,y,0);
+                        trotinetes.add(l);
+
 
                     }
                 }
@@ -206,14 +214,15 @@ public class Server {
 
         criaMapaRecompensas();
         int i =1;
-        Random random = new Random();
         while(i<=n) {
-            Localizacao l = new Localizacao(random.nextInt(0,tamanhoMapa), random.nextInt(0,tamanhoMapa));
-            if(recompensas.get(l)==0){
-                recompensas.put(l,creditos);
+            for (Localizacao l: trotinetes) {
+                if(recompensas.get(l)==0){
+                    recompensas.put(l,creditos);
+                }
+                else i--;
+                i++;
             }
-            else i--;
-            i++;
+
         }
     }
 
@@ -221,22 +230,26 @@ public class Server {
         recompensas= new HashMap<>();
         for (int x = 0; x <= tamanhoMapa; x++) {
             for (int y = 0; y <= tamanhoMapa; y++) {
-                Localizacao l =new Localizacao(x,y);
-                if(!recompensas.containsKey(l)) recompensas.put(l, 0);
+                for (Localizacao l: trotinetes) {
+                    if(!recompensas.containsKey(l)) recompensas.put(l, 0);
+                }
+
             }
         }
     }
 
     public static void preencheMapaTroti(int n){
-        int i = 1;
         criaMapaTroti(tamanhoMapa);
         Random random = new Random();
-        while(i<=n) {
-            Localizacao l = new Localizacao(random.nextInt(0,tamanhoMapa), random.nextInt(0,tamanhoMapa));
-            int t = trotinetes.get(l);
-            trotinetes.put(l,t+1);
-            i++;
-        }
+        int i = 0;
+
+            while (i<n){
+                int x = random.nextInt(0,400);
+                Localizacao l = trotinetes.get(x);
+                l.setNumTrotinetes(l.getNumTrotinetes()+1);
+                i++;
+            }
+
         //System.out.println(trotinetes);
     }
 
@@ -320,11 +333,12 @@ public class Server {
      *****************************************************************/
     public static void logout(Integer port, DataOutputStream out) throws IOException{
         //TODO Se houver erros, alterar mensagem
-        l.lock();
+
+        writeLock.lock();
         try {
             contasAtivas.remove(port);
         } finally {
-            l.unlock();
+            writeLock.unlock();
             System.out.println("[DEBUG] Sending a DESCONNECTION_RESPONSE");
             new Message(DESCONNECTION_RESPONSE,"Logout Efetuado com Sucessso").serialize(out);
         }
@@ -343,24 +357,27 @@ public class Server {
         //reservation code too
         Reservation reserva = new Reservation(newReserva.getInformation(), newReserva.getLocation());
         String message = "Nenhuma Trotinete nessa Localizaçao!";
+        Localizacao aux = newReserva.getLocation();
 
+        // Acquire the write lock before modifying the list
+        writeLock.lock();
+        try {
+            for (Localizacao loc:trotinetes) {
+                if (loc.getX()==aux.getX() && loc.getY()==aux.getY() && loc.getNumTrotinetes() > 0) {
+                    //Enquanto houver uma reserva com código igual, queremos mudar ate ser diferente
+                    while (reservasAtivas.containsKey(reserva.getReservationCode())) reserva.setReservationCode();
+                    message = reserva.getReservationCode();
+                    reservasAtivas.put(reserva.getReservationCode(), reserva);
+                    loc.setNumTrotinetes(loc.getNumTrotinetes()-1);
 
-        l.lock();
-        try
-        {
-            //Se tiver trotinetes, então fazemos uma reserva e retiramos a reserva da localização
-            if(trotinetes.get(newReserva.getLocation()) > 0){
-                //Enquanto houver uma reserva com código igual, queremos mudar ate ser diferente
-                while(reservasAtivas.containsKey(reserva.getReservationCode())) reserva.setReservationCode();
-                message = reserva.getReservationCode();
-                reservasAtivas.put(reserva.getReservationCode(), reserva);
-                trotinetes.put(reserva.getStartLocation(), trotinetes.get(reserva.getStartLocation()) - 1);
+                }
             }
         } finally {
-            l.unlock();
-            new Message(SCOOTER_RESERVATION_RESPONSE, message).serialize(out);
-            System.out.println("[DEBUG] Sending a SCOOTER_RESERVATION_RESPONSE");
+            // Release the write lock after modifying the list
+            writeLock.unlock();
         }
+        new Message(SCOOTER_RESERVATION_RESPONSE, message).serialize(out);
+        System.out.println("[DEBUG] Sending a SCOOTER_RESERVATION_RESPONSE");
     }
 
     /*****************************************************************
@@ -375,7 +392,7 @@ public class Server {
         String message = "Nenhuma Trotinete nessa Localizaçao!";
         Reservation reservation = new Reservation();
 
-        l.lock();
+        writeLock.lock();
         try
         {
             if(reservasAtivas.containsKey(reserva.getInformation())){
@@ -385,16 +402,18 @@ public class Server {
                 reservasAtivas.remove(reserva.getInformation());
 
                 //Tratar das trotinetes
-                trotinetes.put(reservation.getEndLocation(), trotinetes.get(reservation.getEndLocation()) + 1);
-
-                //Responder ao cliente
-                System.out.println("[DEBUG] Sending a COST_REWARD message");
-                //TODO falta recompensa
-                new Message(COST_REWARD, calculaPreco(reservation)).serialize(out);
+                for (Localizacao l:trotinetes) {
+                    if (l.getX() == reserva.getLocation().getX() && l.getY()== reserva.getLocation().getY()){
+                        l.setNumTrotinetes(l.getNumTrotinetes()+1);
+                    }
+                }
             }
         } finally {
-            l.unlock();
-        }
+            writeLock.unlock();
+        } //Responder ao cliente
+        System.out.println("[DEBUG] Sending a COST_REWARD message");
+        //TODO falta recompensa
+        new Message(COST_REWARD, calculaPreco(reservation)).serialize(out);
     }
 
     /*****************************************************************
@@ -408,10 +427,10 @@ public class Server {
         List<Localizacao> lista = new ArrayList<>();
         double distance;
 
-        for (Localizacao t: trotinetes.keySet()) {
+        for (Localizacao t: trotinetes) {
 
             distance = distanciaLocalizacao(t,l);
-            if(distance <=d && trotinetes.get(t) > 0){
+            if(distance <=d && t.getNumTrotinetes() > 0){
                 lista.add(t);
             }
         }

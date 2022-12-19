@@ -10,23 +10,30 @@ import java.util.Objects;
 public class Localizacao {
     int x;
     int y;
+    int numTrotinetes;
+
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Localizacao that = (Localizacao) o;
-        return x == that.x && y == that.y;
+        return x == that.x && y == that.y && numTrotinetes == that.numTrotinetes;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(x, y);
+        return Objects.hash(x, y, numTrotinetes);
     }
 
-    public Localizacao(int x, int y) {
+    public Localizacao(int x, int y, int numTrotinetes) {
         this.x = x;
         this.y = y;
+        this.numTrotinetes = numTrotinetes;
+    }
+
+    public int getX() {
+        return x;
     }
 
     public void setX(int x) {
@@ -37,12 +44,16 @@ public class Localizacao {
         return y;
     }
 
-    public int getX() {
-        return x;
-    }
-
     public void setY(int y) {
         this.y = y;
+    }
+
+    public int getNumTrotinetes() {
+        return numTrotinetes;
+    }
+
+    public void setNumTrotinetes(int numTrotinetes) {
+        this.numTrotinetes = numTrotinetes;
     }
 
     public void serialize (DataOutputStream out) throws IOException {
@@ -50,6 +61,7 @@ public class Localizacao {
 
         out.writeInt(x);
         out.writeInt(y);
+        out.writeInt(numTrotinetes);
 
 
         out.flush();
@@ -59,8 +71,9 @@ public class Localizacao {
     public static Localizacao deserialize (DataInputStream in) throws IOException {
         int x = in.readInt();
         int y = in.readInt();
+        int numTrotinetes = in.readInt();
 
-        Localizacao localizacao = new Localizacao(x,y);
+        Localizacao localizacao = new Localizacao(x,y, numTrotinetes);
         return localizacao;
 
 
@@ -73,7 +86,8 @@ public class Localizacao {
         while(i<r) {
             int x = in.readInt();
             int y = in.readInt();
-            loc.add(new Localizacao(x,y));
+            int numTroti = in.readInt();
+            loc.add(new Localizacao(x,y,numTroti));
             i++;
         }
         return loc;
@@ -85,6 +99,6 @@ public class Localizacao {
 
     @Override
     public String toString() {
-        return "(" + x + "," + y +")";
+        return "(" + x + "," + y +")" + " Trotinetes= " + numTrotinetes;
     }
 }

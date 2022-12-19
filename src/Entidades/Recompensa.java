@@ -62,7 +62,7 @@ public class Recompensa {
 
     public static Recompensa deserialize(DataInputStream in) throws IOException{
         int creditos = in.readInt();
-        Localizacao localizacao = new Localizacao(in.readInt(), in.readInt());
+        Localizacao localizacao = new Localizacao(in.readInt(), in.readInt(), in.readInt());
 
         return new Recompensa(creditos,localizacao);
     }

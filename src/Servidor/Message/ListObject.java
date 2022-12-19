@@ -46,6 +46,7 @@ public class ListObject {
         for (Localizacao loc : objects) {
             out.writeInt(loc.getX());
             out.writeInt(loc.getY());
+            out.writeInt(loc.getNumTrotinetes());
         }
         out.flush();
     }

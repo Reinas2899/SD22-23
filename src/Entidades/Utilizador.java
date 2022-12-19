@@ -9,15 +9,19 @@ public class Utilizador {
     private String username;
     private int creditos;
     private String password;
+    private int x;
+    private int y;
 
     private int x;
     private int y;
 
 
-    public Utilizador(String username, int creditos, String password) {
+    public Utilizador(String username, int creditos, String password, int x, int y) {
         this.username = username;
         this.creditos = creditos;
         this.password = password;
+        this.x = x;
+        this.y = y;
 
     }
 
@@ -30,6 +34,22 @@ public class Utilizador {
 
    public String getUsername() {
         return username;
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public void setY(int y) {
+        this.y = y;
     }
 
     public void setUsername(String username) {
@@ -88,6 +108,8 @@ public class Utilizador {
 
         out.writeInt(creditos);
         out.writeUTF(password);
+        out.writeInt(x);
+        out.writeInt(y);
 
 
         out.flush();
@@ -103,8 +125,10 @@ public class Utilizador {
         String username = in.readUTF();
         int creditos = in.readInt();
         String password = in.readUTF();
+        int x = in.readInt();
+        int y = in.readInt();
 
-        return new Utilizador(username , creditos,password);
+        return new Utilizador(username , creditos,password,x,y);
     }
 
     public static Utilizador deserializeBasics (DataInputStream in) throws IOException {
