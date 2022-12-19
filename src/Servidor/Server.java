@@ -148,13 +148,20 @@ public class Server {
                             }
                         }
                         case SCOOTER_RESERVATION_REQUEST -> {
+                            System.out.println("antes");
+                            if (message instanceof ReservationMessage loc) {
+                                System.out.println("entrei em srr");
+                                reserveScooter(out,loc);
+                            }
 
                         }
                         case START_TRIP -> {
                             // Dado a localização do user, retiramos uma trotinete da localização e enviamos um
                             // código de reserva. Caso nao haja trotinetes, enviamos uma mensagem de insucesso.
-                            if (message instanceof ReservationMessage newReserva) {
-                                startTrip(s.getPort(), out);
+                            if (message instanceof Localizacao loc) {
+                                //System.out.println("entrei start trip server");
+                                //como vou buscar o codigo?
+                               // startTrip(s.getPort(),co, out);
                             }
                         }
                         case END_TRIP -> {
@@ -348,14 +355,15 @@ public class Server {
     }
 
     /*****************************************************************
-     * FUNCTION:     startTrip
+     * FUNCTION:     reserveT
      * INPUT:        newReserva (username e localização inicial)
      * DESCRIPTION:  1- Faz uma nova reserva com um código aleatório
      *               2- Verifica se há trotinetes livres na localização
      *               3- Retira uma trotinete dessa localização
      *               4- Envia mensagem de resposta
      *****************************************************************/
-    private static void startTrip(ReservationMessage newReserva, DataOutputStream out) throws IOException {
+
+    private static void reserveScooter( DataOutputStream out,ReservationMessage newReserva) throws IOException {
         //start time is automatically put here
         //reservation code too
         Reservation reserva = new Reservation(newReserva.getInformation(), newReserva.getLocation());
@@ -403,8 +411,8 @@ public class Server {
             // Release the write lock after modifying the list
             writeLock.unlock();
         }
-        new Message(SCOOTER_RESERVATION_RESPONSE, message).serialize(out);
-        System.out.println("[DEBUG] Sending a SCOOTER_RESERVATION_RESPONSE");
+       // new Message(SCOOTER_RESERVATION_RESPONSE, message).serialize(out);
+        //System.out.println("[DEBUG] Sending a SCOOTER_RESERVATION_RESPONSE");
     }
 
     /*****************************************************************

@@ -43,7 +43,14 @@ public class Client {
                     switch (packet.getType()) {
                         case GENERIC:
                             if (! (message instanceof String)) break;
+                            System.out.println("AQUI");
                             System.out.println(message);
+
+                            if (message.equals("Registo feito!")|| message.equals("Utilizador já existe!"))
+                            {
+                            menuSemConta(out);
+                            }
+
                             break;
                         case SCOOTER_RESERVATION_RESPONSE: // We just need to print the reservation code for the user to user later
                             if (! (message instanceof String)) break;
@@ -55,7 +62,7 @@ public class Client {
                             else{
                                 System.out.println("Código: " + message);
                                 System.out.println("Guarda este código para futuro uso");
-                                menuViagem(out);
+                                menuReserve(out);
                             }
                             break;
                         //

@@ -45,7 +45,7 @@ public class Menu {
         System.out.println("|Insira a operação que pretende realizar :   |");
         System.out.println("|1-> Obter as trotinetes mais próximas       |");
         System.out.println("|2-> Obter as recompensas mais próximas      |");
-        System.out.println("|3-> Iniciar viagem                          |");
+        System.out.println("|3-> Reservar Trotinete                      |");
         System.out.println("|4-> Logout                                  |");
         System.out.println("----------------------------------------------");
         int opt = ler.nextInt();
@@ -61,10 +61,9 @@ public class Menu {
         }
 
         if (opt==3){
-            System.out.println("Insira código de reserva :");
-            String reservationCode = ler.nextLine();
-            new Message(START_TRIP,reservationCode).serialize(out);
-            System.out.println("[DEBUG] Sent START_TRIP to server");
+           // new ReservationMessage(SCOOTER_RESERVATION_REQUEST,menuGetLocalização()).serialize(out);
+            new Message(SCOOTER_RESERVATION_REQUEST,menuGetLocalização()).serialize(out);
+            System.out.println("[DEBUG] Sent SCOOTER_RESERVATION_REQUEST to server");
         }
         if (opt==4){
             new Message(DESCONNECTION , null).serialize(out);
@@ -79,14 +78,38 @@ public class Menu {
         System.out.println("----------------------------------------------");
 
         // Ler input aqui
-        int opt = ler.nextInt(); ler.nextLine();
+        int opt = ler.nextInt();
+        ler.nextLine();
 
         if (opt== 1){
             Localizacao loc = menuGetLocalização();
             System.out.println("Insira código de reserva :");
             String reservationCode = ler.nextLine();
             System.out.println("[DEBUG] Sent END_TRIP to server");
-            new Message(END_TRIP, new ReservationMessage(reservationCode, loc)).serialize(out);
+            new Message(END_TRIP, loc).serialize(out);
+        }
+
+    }
+
+    public static void menuReserve(DataOutputStream out) throws IOException {
+        System.out.println("------------------SD-TP-GRUPO-21--------------");
+        System.out.println("|Insira a operação que pretende realizar :   |");
+        System.out.println("|1->Iniciar Viagem                           |");
+        System.out.println("|2->Cancelar Reserva                         |");
+        System.out.println("----------------------------------------------");
+
+        // Ler input aqui
+        int opt = ler.nextInt(); ler.nextLine();
+
+        if (opt== 1){
+            Localizacao loc = menuGetLocalização();
+            System.out.println("Insira código de reserva :");
+            String reservationCode = ler.nextLine();
+            System.out.println("[DEBUG] Sent START_TRIP to server");
+            new Message(START_TRIP, loc).serialize(out);
+        }
+        if (opt==2)
+        {
         }
 
     }
