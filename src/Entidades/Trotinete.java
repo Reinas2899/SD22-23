@@ -65,7 +65,7 @@ public class Trotinete{
     public static Trotinete deserialize (DataInputStream in) throws IOException {
         String idTrotinete = in.readUTF();
         boolean reservada = in.readBoolean();
-        Localizacao localizacao = new Localizacao(in.readInt(), in.readInt());
+        Localizacao localizacao = new Localizacao(in.readInt(), in.readInt(), in.readInt());
 
         return new Trotinete(idTrotinete,reservada , localizacao);
 

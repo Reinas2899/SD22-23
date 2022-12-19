@@ -9,6 +9,7 @@ import Servidor.Message.Message;
 import Servidor.Message.ReservationMessage;
 
 import java.io.*;
+import java.util.List;
 import java.util.Scanner;
 
 import static Servidor.Message.MessageType.*;
@@ -111,7 +112,7 @@ public class Menu {
         System.out.println("Insira a coordenada Y :");
         int y = ler.nextInt();
         ler.nextLine();
-        return new Localizacao(x,y);
+        return new Localizacao(x,y,-1);
     }
 }
 

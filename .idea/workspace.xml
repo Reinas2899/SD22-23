@@ -4,7 +4,19 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a194b99e-beb7-4e90-af34-5c81dcd1bf77" name="Changes" comment="" />
+    <list default="true" id="a194b99e-beb7-4e90-af34-5c81dcd1bf77" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/SD22-23/Client/Menu.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/SD22-23/Client/Menu.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/SD22-23/Entidades/Reservation.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/SD22-23/Entidades/Reservation.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/SD22-23/Servidor/Server.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/SD22-23/Servidor/Server.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Client/Menu.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Client/Menu.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Entidades/Localizacao.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Entidades/Localizacao.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Entidades/Recompensa.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Entidades/Recompensa.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Entidades/Trotinete.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Entidades/Trotinete.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Entidades/Utilizador.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Entidades/Utilizador.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Servidor/Message/ListObject.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Servidor/Message/ListObject.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Servidor/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Servidor/Server.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
