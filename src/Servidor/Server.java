@@ -64,7 +64,7 @@ public class Server {
                         Socket socket = new Socket("localhost", port);
                         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
                         Utilizador user = contasAtivas.get(port);
-                        nearbyRecompensa(distanciaUser, new Localizacao(1, 1), out);
+                        nearbyRecompensa(distanciaUser, new Localizacao(1, 1, -1), out);
                         socket.close();
                     }
 
