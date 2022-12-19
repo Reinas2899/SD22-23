@@ -148,10 +148,8 @@ public class Server {
                             }
                         }
                         case SCOOTER_RESERVATION_REQUEST -> {
-                            System.out.println("antes");
                             if (message instanceof Localizacao loc) {
-                                System.out.println("entrei em srr");
-                                reserveScooter(out,loc);
+                                reserveScooter(out, s.getPort(), loc);
                             }
 
                         }
@@ -161,12 +159,12 @@ public class Server {
 
                             if (message instanceof String res) {
                                 System.out.println("Aqui");
-                                startTrip(res,out);
+                                startTrip(res, s.getPort(), out);
                             }
                         }
                         case END_TRIP -> {
-                            if (message instanceof Localizacao loc) {
-                                endTrip(loc, out);
+                            if (message instanceof ReservationMessage res) {
+                                endTrip(s.getPort(), res, out);
                             }
                         }
                     }
@@ -363,10 +361,10 @@ public class Server {
      *               4- Envia mensagem de resposta
      *****************************************************************/
 
-    private static void reserveScooter( DataOutputStream out,Localizacao localizacao) throws IOException {
+    private static void reserveScooter( DataOutputStream out, Integer port, Localizacao localizacao) throws IOException {
         //start time is automatically put here
         //reservation code too
-        Reservation reserva = new Reservation("", localizacao);
+        Reservation reserva = new Reservation(contasAtivas.get(port).getUsername(), localizacao);
         String message = "Nenhuma Trotinete nessa Localizaçao!";
 
         // Acquire the write lock before modifying the list
@@ -398,15 +396,17 @@ public class Server {
      *               3- Retira uma trotinete dessa localização
      *               4- Envia mensagem de resposta
      *****************************************************************/
-    private static void startTrip(String reservationCode, DataOutputStream out) throws IOException {
+    private static void startTrip(String reservationCode, Integer port, DataOutputStream out) throws IOException {
 
         // Acquire the write lock before modifying the list
         writeLock.lock();
         try {
-            System.out.println("Entrei");
-            Reservation reserva = reservasAtivas.get(reservationCode);
-            reserva.setStartTime();
-            reservasAtivas.put(reservationCode, reserva);
+            if(reservasAtivas.containsKey(reservationCode) &&
+                    reservasAtivas.get(reservationCode).getUser().equals(contasAtivas.get(port).getUsername())) {
+                Reservation reserva = reservasAtivas.get(reservationCode);
+                reserva.setStartTime();
+                reservasAtivas.put(reservationCode, reserva);
+            }
         } finally {
             // Release the write lock after modifying the list
             writeLock.unlock();
@@ -424,16 +424,18 @@ public class Server {
      *               3- Adicionar trotinete à localização
      *               4- Calcular e enviar custo e recompensas ao cliente
      *****************************************************************/
-    private static void endTrip(Localizacao localizacao, DataOutputStream out) throws IOException {
-        String message = "Nenhuma Trotinete nessa Localizaçao!";
-        Reservation reservation = new Reservation();
-
+    private static void endTrip(Integer port, ReservationMessage reserva, DataOutputStream out) throws IOException {
+        System.out.println(reserva.getInformation());
+        System.out.println(reservasAtivas.get(reserva.getInformation()).getUser());
+        System.out.println(contasAtivas.get(port).getUsername());
         writeLock.lock();
         try
         {
-            if(reservasAtivas.containsKey(reserva.getInformation())){
+            // Se o código existe e se o código pertence ao user que fez essa reserva
+            if(reservasAtivas.containsKey(reserva.getInformation()) &&
+                    reservasAtivas.get(reserva.getInformation()).getUser().equals(contasAtivas.get(port).getUsername())){
                 //Tratar da reserva
-                reservation = reservasAtivas.get(reserva.getInformation());
+                Reservation reservation = reservasAtivas.get(reserva.getInformation());
                 reservation.endReservation(reserva.getLocation());
                 reservasAtivas.remove(reserva.getInformation());
 
@@ -443,13 +445,20 @@ public class Server {
                         l.setNumTrotinetes(l.getNumTrotinetes()+1);
                     }
                 }
+
+                System.out.println("[DEBUG] Sending a COST_REWARD message");
+                //TODO falta recompensa
+                new Message(COST_REWARD, calculaPreco(reservation)).serialize(out);
+            }
+            else {
+                System.out.println("[DEBUG] Sending a GENERIC message");
+                new Message(COST_REWARD, "Código errado!").serialize(out);
             }
         } finally {
             writeLock.unlock();
+
         } //Responder ao cliente
-        System.out.println("[DEBUG] Sending a COST_REWARD message");
-        //TODO falta recompensa
-        new Message(COST_REWARD, calculaPreco(reservation)).serialize(out);
+
     }
 
     /*****************************************************************

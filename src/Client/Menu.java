@@ -83,10 +83,10 @@ public class Menu {
 
         if (opt== 1){
             Localizacao loc = menuGetLocalização();
-            //System.out.println("Insira código de reserva :");
-            //String reservationCode = ler.nextLine();
+            System.out.println("Insira código de reserva :");
+            String reservationCode = ler.nextLine();
             System.out.println("[DEBUG] Sent END_TRIP to server");
-            new Message(END_TRIP, loc).serialize(out);
+            new Message(END_TRIP, new ReservationMessage(reservationCode, loc)).serialize(out);
            }
 
     }
