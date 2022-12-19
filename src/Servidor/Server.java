@@ -20,7 +20,9 @@ import static Servidor.Message.MessageType.*;
 public class Server {
    //Porque não ter um map das trotinetes?
     private static Map<String, Reservation> reservasAtivas = new HashMap<>();
-    private static Map<String, Utilizador> contasAtivas = new HashMap<>();
+
+    private static Map<Integer, Utilizador> contasAtivas = new HashMap<>(); //<port, user>
+    private List<Integer> notificationBros = new ArrayList<>();
     private static Lock l = new ReentrantLock();
     private static Map<Localizacao,Integer> trotinetes = new HashMap<>();
     private static Map<Localizacao,Integer> recompensas = new HashMap<>();
@@ -36,80 +38,132 @@ public class Server {
 
 
     public static void main(String[] args) throws IOException {
-        ServerSocket ss = new ServerSocket(4999);
+        new Server();
+    }
+
+    public Server() throws IOException {
         preencheMapaTroti(numeroTroti);
         geraRecompensa(10,10);
+        receiveFromClient().start();
+        sendNotifications().start();
 
-        while (true) {
-            Socket s = ss.accept();
-            //System.out.println("[DEBUG] New connection.");
-            new Thread(() -> {
+    }
+
+    private Thread sendNotifications() {
+        return new Thread(() -> {
+            try {
                 while (true) {
-                    try {
-                        DataInputStream in = new DataInputStream(s.getInputStream());
-                        DataOutputStream out = new DataOutputStream(s.getOutputStream());
+                    for(Integer port : notificationBros){
+                        Socket socket = new Socket("localhost", port);
+                        DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+                        Utilizador user = contasAtivas.get(port);
+                        nearbyRecompensa(distanciaUser, new Localizacao(1, 1), out);
+                        socket.close();
+                    }
 
-                        Message packet = Message.deserialize(in);
-                        Object message = packet.getMessage();
+                    Thread.sleep(10000);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
 
-                        System.out.println("[DEBUG] Recieved packet of type " + packet.getType().toString());
+        });
+    }
 
-                        switch (packet.getType()) {
-                            case REGISTER -> {
-                                // Dado um username e uma password, guardamos este user na "base de dados" (um ficheiro)
-                                if (message instanceof Utilizador registaUser)
-                                    registaUser(registaUser, out);
-                            }
-                            case CONNECTION -> {
-                                // Dado um username e uma password, verificamos se existe e se sim, criamos uma conexão
-                                if (message instanceof Utilizador loginUser)
-                                    login(loginUser, out);
-                            }
-                            case DESCONNECTION -> {
-                                if (message instanceof String username)
-                                    logout(username, out);
-                            }
-                            case NEARBY_SCOOTERS -> {
-                                // Dado a localização do user, damos uma lista de trotinetes perto
-                                if (message instanceof Localizacao loc) {
-                                    nearbyScooter(distanciaUser, loc, out);
-                                }
-                            }
-                            case NEARBY_REWARDS -> {
-                                // Dado a localização do user, damos uma lista de recompensas perto
-                                if (message instanceof Localizacao userLocation) {
-                                    nearbyRecompensa(distanciaUser, userLocation, out);
 
-                                    //String notificationMessage = "This is a notification";
-                                    //String recipient = "recipient@example.com";
-                                    //NotificationThread notificationThread = new NotificationThread(notificationMessage, recipient);
-                                    //executor.execute(notificationThread);
+    private Thread receiveFromClient() throws IOException {
 
-                                }
-                            }
-                            case START_TRIP -> {
-                                // Dado a localização do user, retiramos uma trotinete da localização e enviamos um
-                                // código de reserva. Caso nao haja trotinetes, enviamos uma mensagem de insucesso.
-                                if (message instanceof ReservationMessage newReserva) {
-                                    startTrip(newReserva, out);
-                                }
-                            }
-                            case END_TRIP -> {
-                                if (message instanceof ReservationMessage reservation) {
-                                    endTrip(reservation, out);
-                                }
+        ServerSocket socket_control = new ServerSocket(4999);
+        return new Thread(() -> {
+            try {
+
+                while (true) {
+
+                    Socket new_socket = socket_control.accept();
+                    connectedClient(new_socket).start();
+                }
+
+            } catch (Exception e) {
+                System.out.println("[ERROR] Thread that connects to clients crashed!");
+                System.out.println(e);
+                System.exit(-1);
+            }
+        });
+    }
+
+    private Thread connectedClient(Socket s) {
+        return new Thread(() -> {
+            try {
+                boolean connected = true;
+                while(connected) {
+                    DataInputStream in = new DataInputStream(s.getInputStream());
+                    DataOutputStream out = new DataOutputStream(s.getOutputStream());
+
+                    Message packet = Message.deserialize(in);
+                    Object message = packet.getMessage();
+
+                    System.out.println("[DEBUG] Recieved packet of type " + packet.getType().toString() +
+                            " from client " + s.getPort());
+
+                    switch (packet.getType()) {
+                        case REGISTER -> {
+                            // Dado um username e uma password, guardamos este user na "base de dados" (um ficheiro)
+                            if (message instanceof Utilizador registaUser)
+                                registaUser(registaUser, out);
+                        }
+                        case CONNECTION -> {
+                            // Dado um username e uma password, verificamos se existe e se sim, criamos uma conexão
+
+                            if (message instanceof Utilizador loginUser)
+                                login(s.getPort(), loginUser, out);
+                        }
+                        case DESCONNECTION -> {
+                            logout(s.getPort(), out);
+                        }
+                        case NEARBY_SCOOTERS -> {
+                            // Dado a localização do user, damos uma lista de trotinetes perto
+                            if (message instanceof Localizacao loc) {
+                                nearbyScooter(distanciaUser, loc, out);
                             }
                         }
+                        case NEARBY_REWARDS -> {
+                            // Dado a localização do user, damos uma lista de recompensas perto
+                            if (message instanceof Localizacao userLocation) {
+                                nearbyRecompensa(distanciaUser, userLocation, out);
 
-                    } catch (Exception e) {
-                        System.out.println("Erro");
+                                //String notificationMessage = "This is a notification";
+                                //String recipient = "recipient@example.com";
+                                //NotificationThread notificationThread = new NotificationThread(notificationMessage, recipient);
+                                //executor.execute(notificationThread);
+
+                            }
+                        }
+                        case START_TRIP -> {
+                            // Dado a localização do user, retiramos uma trotinete da localização e enviamos um
+                            // código de reserva. Caso nao haja trotinetes, enviamos uma mensagem de insucesso.
+                            if (message instanceof ReservationMessage newReserva) {
+                                startTrip(newReserva, out);
+                            }
+                        }
+                        case END_TRIP -> {
+                            if (message instanceof ReservationMessage reservation) {
+                                endTrip(reservation, out);
+                            }
+                        }
                     }
                 }
-            }).start();
-            executor.shutdown();
 
-        }
+            } catch (Exception e) {
+                System.out.println("[ERROR] process thread crashed!");
+                System.out.println(e);
+                System.exit(-1);
+            }
+        });
     }
+
+
 
     public static void criaMapaTroti(int n){
         trotinetes= new HashMap<>();
@@ -144,7 +198,7 @@ public class Server {
 
 
 
-    public static void setContasAtivas(Map<String, Utilizador> contasAtivas) {
+    public static void setContasAtivas(Map<Integer, Utilizador> contasAtivas) {
         Server.contasAtivas = contasAtivas;
     }
 
@@ -234,18 +288,18 @@ public class Server {
      *                  às contas ativas
      *               3- Envia mensagem de resposta
      *****************************************************************/
-    public static void login(Utilizador user, DataOutputStream out) throws IOException{
+    public static void login(Integer port, Utilizador user, DataOutputStream out) throws IOException{
         String message = "Login incorreto!";
 
         //TODO não é preciso meter isto dentro do lock?
         if(existsUser(user.getUsername(), user.getPassword())){
             l.lock();
             try{
-                if(contasAtivas.containsKey(user.getUsername())){
+                if(contasAtivas.containsKey(port)){
                     message = "Este user já está logado noutro cliente.";
                 }
                 else{
-                    contasAtivas.put(user.getUsername(),user);
+                    contasAtivas.put(port, user);
                     message = "Login efetuado com sucesso!";
                 }
 
@@ -264,12 +318,11 @@ public class Server {
      * DESCRIPTION:  1- Remove-se user das contas ativas
      *               3- Envia mensagem de resposta
      *****************************************************************/
-    public static void logout(String username, DataOutputStream out) throws IOException{
+    public static void logout(Integer port, DataOutputStream out) throws IOException{
         //TODO Se houver erros, alterar mensagem
-
         l.lock();
         try {
-            contasAtivas.remove(username);
+            contasAtivas.remove(port);
         } finally {
             l.unlock();
             System.out.println("[DEBUG] Sending a DESCONNECTION_RESPONSE");

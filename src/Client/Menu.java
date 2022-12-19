@@ -32,7 +32,6 @@ public class Menu {
         if (opcao == 1) {
             new Message(REGISTER, menuGetUtilizador()).serialize(out);
             System.out.println("[DEBUG] REGISTER message sent");
-            menuSemConta(out);
         }
         if (opcao == 2) {
             new Message(CONNECTION, menuGetUtilizador()).serialize(out);
@@ -61,13 +60,11 @@ public class Menu {
         }
 
         if (opt==3){
-            //TODO como ter username sem pedir??
-            new Message(START_TRIP , new ReservationMessage("admin", menuGetLocalização())).serialize(out);
+            new Message(START_TRIP,null).serialize(out);
             System.out.println("[DEBUG] Sent START_TRIP to server");
         }
         if (opt==4){
-            //TODO como ter username sem pedir??
-            new Message(DESCONNECTION , "admin").serialize(out);
+            new Message(DESCONNECTION , null).serialize(out);
             System.out.println("[DEBUG] Sent DESCONNECTION to server");
         }
     }
