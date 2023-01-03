@@ -20,7 +20,7 @@ public class RewardsSystem
 
     public List<Localizacao> findLocalCVariasTrotis()
     {
-        List<Localizacao> LocalCVariasTrotis = null;
+        List<Localizacao> LocalCVariasTrotis = new ArrayList<>();
 
         for (Localizacao local : trotinetes)
         {
@@ -36,7 +36,7 @@ public class RewardsSystem
 
     public List<Localizacao> findLocalSTrotis(Localizacao local)
     {
-        List<Localizacao> LocalSTrotis = null;
+        List<Localizacao> LocalSTrotis = new ArrayList<>();
 
         for (Localizacao nearbyLocation : trotinetes)
         {
@@ -97,7 +97,7 @@ public class RewardsSystem
             addToRewardsMap(origem, destinos);
 
             int rewards = calculateReward(destinos);
-            System.out.println("Recompensas para a localização x:" + origem.getX()+" y:"+origem.getY() + " :" + rewards);
+            System.out.println("Recompensas para a localização x:" + origem.getX()+" y:"+origem.getY() + "  recompensa:" + rewards);
         }
     }
 

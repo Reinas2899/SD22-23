@@ -35,6 +35,7 @@ public class Server {
     private static ReadWriteLock rwLock = new ReentrantReadWriteLock();
     private static Lock readLock = rwLock.readLock();
     private static Lock writeLock = rwLock.writeLock();
+    private  static  RewardsSystem rs= new RewardsSystem(trotinetes);
 
     private static final int distanciaUser = 5;
     //Lista de threads ativas, aka, clientes/users ativos
@@ -50,7 +51,8 @@ public class Server {
 
     public Server() throws IOException {
         preencheMapaTroti(numeroTroti);
-        geraRecompensa(10,10);
+        //geraRecompensa(10,10);
+        rs.calculateRewards();
         receiveFromClient().start();
         sendNotifications().start();
 
