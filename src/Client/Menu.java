@@ -15,7 +15,13 @@ import java.util.Scanner;
 import static Servidor.Message.MessageType.*;
 
 public class Menu {
-       static Scanner ler = new Scanner(System.in);
+   static Client client;
+   static boolean notifications;
+   static Scanner ler = new Scanner(System.in);
+
+   public Menu (Client client){
+       this.client = client;
+   }
 
     public static void menuSemConta(DataOutputStream out) throws IOException {
         String user = "";
@@ -46,28 +52,39 @@ public class Menu {
         System.out.println("|1-> Obter as trotinetes mais próximas       |");
         System.out.println("|2-> Obter as recompensas mais próximas      |");
         System.out.println("|3-> Reservar Trotinete                      |");
-        System.out.println("|4-> Logout                                  |");
+        optionNotification(4);
+        System.out.println("|5-> Logout                                  |");
         System.out.println("----------------------------------------------");
         int opt = ler.nextInt();
         ler.nextLine();
-        if (opt== 1){
-            new Message(NEARBY_SCOOTERS , menuGetLocalização()).serialize(out);
-            System.out.println("[DEBUG] Sent NEARBY_SCOOTERS to server");
-        }
-
-        if (opt== 2){
-            new Message(NEARBY_REWARDS , menuGetLocalização()).serialize(out);
-            System.out.println("[DEBUG] Sent NEARBY_REWARDS to server");
-        }
-
-        if (opt==3){
-           // new ReservationMessage(SCOOTER_RESERVATION_REQUEST,menuGetLocalização()).serialize(out);
-            new Message(SCOOTER_RESERVATION_REQUEST,menuGetLocalização()).serialize(out);
-            System.out.println("[DEBUG] Sent SCOOTER_RESERVATION_REQUEST to server");
-        }
-        if (opt==4){
-            new Message(DESCONNECTION , null).serialize(out);
-            System.out.println("[DEBUG] Sent DESCONNECTION to server");
+        switch(opt){
+            case 1: // Trotinetes perto
+                new Message(NEARBY_SCOOTERS , menuGetLocalização()).serialize(out);
+                System.out.println("[DEBUG] Sent NEARBY_SCOOTERS to server");
+                break;
+            case 2: // Recompensas perto
+                new Message(NEARBY_REWARDS , menuGetLocalização()).serialize(out);
+                System.out.println("[DEBUG] Sent NEARBY_REWARDS to server");
+                break;
+            case 3: // Reservar trotinete
+                new Message(SCOOTER_RESERVATION_REQUEST,menuGetLocalização()).serialize(out);
+                System.out.println("[DEBUG] Sent SCOOTER_RESERVATION_REQUEST to server");
+                break;
+            case 4: // Ligar/desligar notificações
+                new Message(TOGGLE_NOTIFICATION, null).
+                        serialize(new DataOutputStream(client.notiSocket.getOutputStream()));
+                System.out.println("[DEBUG] Sent TOGGLE_NOTIFICATION to server from Notification Socket");
+                chosenNotifications();
+                menuLogado(out);
+                break;
+            case 5: // Logout
+                new Message(DESCONNECTION , null).serialize(out);
+                System.out.println("[DEBUG] Sent DESCONNECTION to server");
+                break;
+            default:
+                System.out.println("Isso não é uma opção válida :/");
+                menuLogado(out);
+                break;
         }
     }
 
@@ -75,20 +92,35 @@ public class Menu {
         System.out.println("------------------SD-TP-GRUPO-21--------------");
         System.out.println("|Insira a operação que pretende realizar :   |");
         System.out.println("|1->Terminar viagem                          |");
+        optionNotification(2);
         System.out.println("----------------------------------------------");
 
         // Ler input aqui
         int opt = ler.nextInt();
         ler.nextLine();
 
-        if (opt== 1){
-            Localizacao loc = menuGetLocalização();
-            System.out.println("Insira código de reserva :");
-            String reservationCode = ler.nextLine();
-            System.out.println("[DEBUG] Sent END_TRIP to server");
-            new Message(END_TRIP, new ReservationMessage(reservationCode, loc)).serialize(out);
-           }
+        switch (opt) {
+            case 1: // Terminar viagem
+                // We need to get location and reservation code
+                Localizacao loc = menuGetLocalização();
+                System.out.println("Insira código de reserva :");
+                String reservationCode = ler.nextLine();
 
+                new Message(END_TRIP, new ReservationMessage(reservationCode, loc)).serialize(out);
+                System.out.println("[DEBUG] Sent END_TRIP to server");
+                break;
+            case 2: // Ligar/desligar notificações
+                new Message(TOGGLE_NOTIFICATION, null).
+                        serialize(new DataOutputStream(client.notiSocket.getOutputStream()));
+                System.out.println("[DEBUG] Sent TOGGLE_NOTIFICATION to server from Notification Socket");
+                chosenNotifications();
+                menuViagem(out);
+                break;
+            default:
+                System.out.println("Isso não é uma opção válida :/");
+                menuViagem(out);
+                break;
+        }
     }
 
     public static void menuReserve(DataOutputStream out) throws IOException {
@@ -96,28 +128,50 @@ public class Menu {
         System.out.println("|Insira a operação que pretende realizar :   |");
         System.out.println("|1->Iniciar Viagem                           |");
         System.out.println("|2->Cancelar Reserva                         |");
+        optionNotification(3);
         System.out.println("----------------------------------------------");
 
         // Ler input aqui
         int opt = ler.nextInt(); ler.nextLine();
+        switch (opt) {
+            case 1: // Iniciar viagem
+                // We need to get the reservation code
+                System.out.println("Insira código de reserva :");
+                String reservationCode = ler.nextLine();
 
-        if (opt== 1){
-            //Localizacao loc = menuGetLocalização();
-            System.out.println("Insira código de reserva :");
-            String reservationCode = ler.nextLine();
-            System.out.println("[DEBUG] Sent START_TRIP to server");
-            new Message(START_TRIP, reservationCode).serialize(out);
-            menuViagem(out);
-        }
-        if (opt==2)
-        {
-        }
+                new Message(START_TRIP, reservationCode).serialize(out);
+                System.out.println("[DEBUG] Sent START_TRIP to server");
 
+                menuViagem(out);
+                break;
+            case 2: // Cancelar reserva
+                //TODO Cancelar viagem é preciso um novo no messagetype "CANCEL RESERVATION"
+                System.out.println("É preciso CANCEL_RESERVATION no messageType");
+                break;
+            case 3: // Ligar/desligar notificações
+                new Message(TOGGLE_NOTIFICATION, null).
+                        serialize(new DataOutputStream(client.notiSocket.getOutputStream()));
+                System.out.println("[DEBUG] Sent TOGGLE_NOTIFICATION to server from Notification Socket");
+                chosenNotifications();
+                menuReserve(out);
+                break;
+            default:
+                System.out.println("Isso não é uma opção válida :/");
+                menuReserve(out);
+                break;
+        }
     }
 
-    public static void imprimeListas(ListObject list){
+    public static void imprimeTrotis(ListObject list){
         for (int i = 0; i < list.getSize() ; i++) {
-            System.out.println(list.getObjects().get(i) + "\n");
+            System.out.println(list.getObjects().get(i));
+        }
+    }
+
+    public static void imprimeRecompensas(ListObject list){
+        for (int i = 0; i < list.getSize() ; i+=2) {
+            System.out.println("(Origem:(" + list.getObjects().get(i)   +
+                           ")) -> (Destino:(" + list.getObjects().get(i+1) + "))");
         }
     }
 
@@ -136,6 +190,24 @@ public class Menu {
         int y = ler.nextInt();
         ler.nextLine();
         return new Localizacao(x,y,-1);
+    }
+
+    private static void optionNotification(int number){
+        if(notifications)
+            System.out.println("|"+ number + "-> Desligar notificações                   |");
+        else
+            System.out.println("|"+ number + "-> Ligar notificações                      |");
+    }
+
+    private static void chosenNotifications() throws IOException {
+
+       notifications = !notifications;
+       if(notifications) client.notificationThread().start();
+       else{
+           client.notificationThread().interrupt();
+           new Message(DESCONNECTION , null).
+                   serialize(new DataOutputStream(client.notiSocket.getOutputStream()));
+       }
     }
 }
 

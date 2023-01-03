@@ -15,7 +15,10 @@ public enum MessageType {
     SCOOTER_RESERVATION_RESPONSE,
     START_TRIP,
     END_TRIP,
-    COST_REWARD;
+    COST_REWARD,
+    TOGGLE_NOTIFICATION,
+
+    NOTIFICATION_MSG;
 
     public static MessageType fromInteger(int x) {
         return switch (x) {
@@ -34,6 +37,8 @@ public enum MessageType {
             case 12 -> END_TRIP;
             case 13 -> COST_REWARD;
             case 14 -> SCOOTER_RESERVATION_REQUEST;
+            case 15 -> TOGGLE_NOTIFICATION;
+            case 16 -> NOTIFICATION_MSG;
             default -> null;
         };
     }
@@ -55,6 +60,8 @@ public enum MessageType {
             case END_TRIP -> 12;
             case COST_REWARD -> 13;
             case SCOOTER_RESERVATION_REQUEST -> 14;
+            case TOGGLE_NOTIFICATION -> 15;
+            case NOTIFICATION_MSG -> 16;
             default -> -1;
         };
     }

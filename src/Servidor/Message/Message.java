@@ -38,11 +38,9 @@ public class Message {
             case GENERIC, CONNECTION_RESPONSE, DESCONNECTION_RESPONSE, START_TRIP, SCOOTER_RESERVATION_RESPONSE  -> message =in.readUTF();
             case NEARBY_SCOOTERS, NEARBY_REWARDS,SCOOTER_RESERVATION_REQUEST -> message = Localizacao.deserialize(in);
             case END_TRIP -> message = ReservationMessage.deserialize(in);
-            case LIST_SCOOTERS, LIST_REWARDS -> message = ListObject.deserialize(in);
+            case LIST_SCOOTERS, LIST_REWARDS, NOTIFICATION_MSG -> message = ListObject.deserialize(in);
             case COST_REWARD -> message = in.readFloat();
-            case DESCONNECTION ->{}
-            default -> {
-            }
+            default -> {System.out.println("[DEBUG] IDK this message");}
         }
         return new Message(type, message);
     }
@@ -50,7 +48,6 @@ public class Message {
     public void serialize(DataOutputStream out) throws IOException {
         out.writeInt(MessageType.toInteger(this.type));
         switch (this.type){
-
             case REGISTER:
             case CONNECTION:
                 if(message instanceof Utilizador user)
@@ -76,6 +73,7 @@ public class Message {
                 break;
             case LIST_SCOOTERS:
             case LIST_REWARDS:
+            case NOTIFICATION_MSG:
                 if(message instanceof ListObject list)
                     list.serialize(out);
                 break;
@@ -83,8 +81,8 @@ public class Message {
                 if(message instanceof Float custo)
                     out.writeFloat(custo);
                 break;
-
             case DESCONNECTION:
+            case TOGGLE_NOTIFICATION:
             default:
                 break;
         }

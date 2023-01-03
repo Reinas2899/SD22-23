@@ -25,7 +25,7 @@ public class Server {
     private static Map<String, Reservation> reservasAtivas = new HashMap<>();
 
     private static Map<Integer, Utilizador> contasAtivas = new HashMap<>(); //<port, user>
-    private List<Integer> notificationBros = new ArrayList<>();
+    private Map<Integer, Socket> notificationBros = new HashMap<>(); //<port, socket>
     private static Lock l = new ReentrantLock();
     private static List<Localizacao> trotinetes = new ArrayList<>();
     private static Map<Localizacao,Integer> recompensas = new HashMap<>();
@@ -60,15 +60,26 @@ public class Server {
         return new Thread(() -> {
             try {
                 while (true) {
-                    for(Integer port : notificationBros){
-                        Socket socket = new Socket("localhost", port);
-                        DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+                    for(Integer port : notificationBros.keySet()){
+
+                        DataOutputStream out = new DataOutputStream(notificationBros.get(port).getOutputStream());
+
                         Utilizador user = contasAtivas.get(port);
-                        nearbyRecompensa(distanciaUser, new Localizacao(1, 1, -1), out);
-                        socket.close();
+
+                        //TODO localização do user
+                        List<Localizacao> lista = nearbyRecompensa(distanciaUser, new Localizacao(1, 1, -1), out);
+
+                        if(lista.isEmpty()) {
+                            new Message(GENERIC, "Nenhuma recompensa nas proximidades").serialize(out);
+                            System.out.println("[DEBUG] Sending a GENERIC message" + port);
+                        }
+                        else{
+                            new Message(NOTIFICATION_MSG, new ListObject(lista.size(), lista)).serialize(out);
+                            System.out.println("[DEBUG] Sending a NOTIFICATION_MSG message to " + port);
+                        }
                     }
 
-                    Thread.sleep(10000);
+                    Thread.sleep(10000); // 10 segundos
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -138,7 +149,15 @@ public class Server {
                         case NEARBY_REWARDS -> {
                             // Dado a localização do user, damos uma lista de recompensas perto
                             if (message instanceof Localizacao userLocation) {
-                                nearbyRecompensa(distanciaUser, userLocation, out);
+                                List<Localizacao> lista = nearbyRecompensa(distanciaUser, userLocation, out);
+                                if(lista.isEmpty()) {
+                                    System.out.println("[DEBUG] Sending a GENERIC message");
+                                    new Message(GENERIC, "Nenhuma recompensa nas proximidades").serialize(out);
+                                }
+                                else{
+                                    System.out.println("[DEBUG] Sending a LIST_REWARDS message");
+                                    new Message(LIST_REWARDS, new ListObject(lista.size(), lista)).serialize(out);
+                                }
 
                                 //String notificationMessage = "This is a notification";
                                 //String recipient = "recipient@example.com";
@@ -167,9 +186,15 @@ public class Server {
                                 endTrip(s.getPort(), res, out);
                             }
                         }
+
+                        case TOGGLE_NOTIFICATION -> {
+                            // se tiver na lista, quer dizer que ele quer desligar. Se nap tiver, então quer ser juntado
+                            int port = s.getLocalPort();
+                            if (notificationBros.containsKey(port)) notificationBros.remove(port);
+                            else notificationBros.put(port, s);
+                        }
                     }
                 }
-
             } catch (Exception e) {
                 System.out.println("[ERROR] process thread crashed!");
                 System.out.println(e);
@@ -313,22 +338,21 @@ public class Server {
         String message = "Login incorreto!";
 
         //TODO não é preciso meter isto dentro do lock?
-        if(existsUser(user.getUsername(), user.getPassword())){
-            l.lock();
-            try{
-                if(contasAtivas.containsKey(port)){
+        l.lock();
+        try{
+            if(existsUser(user.getUsername(), user.getPassword())) {
+
+                if (contasAtivas.containsKey(port)) {
                     message = "Este user já está logado noutro cliente.";
-                }
-                else{
+                } else {
                     contasAtivas.put(port, user);
                     message = "Login efetuado com sucesso!";
                 }
-
-            }finally {
+            }
+        }finally {
                 l.unlock();
                 System.out.println("[DEBUG] Sending a CONNECTION_RESPONSE");
                 new Message(CONNECTION_RESPONSE, message).serialize(out);
-            }
         }
 
     }
@@ -496,24 +520,23 @@ public class Server {
      *                  de distancia do cliente
      *               2- Devolve lista ao cliente
      *****************************************************************/
-    public static void nearbyRecompensa(int d, Localizacao l, DataOutputStream out) throws IOException {
+    public static List<Localizacao> nearbyRecompensa(int d, Localizacao l, DataOutputStream out) throws IOException {
         List<Localizacao> lista =new ArrayList<>();
+        //TODO Isto está mal
+        // recompensas são pares origem destino em que se fizer esse caminho, então recebe um bonus
+        // podemos fazer que se houver 0 trotinetes num lado e 2 ou mais noutro, que é uma recompensa
         double distance;
         for (Localizacao l1: recompensas.keySet()) {
 
             distance = distanciaLocalizacao(l1,l);
             if(distance <=d && recompensas.get(l1)>0){
                 lista.add(l1);
+                lista.add(l1);
             }
+            if(lista.size() == 6) break;
         }
-        if(lista.isEmpty()) {
-            System.out.println("[DEBUG] Sending a GENERIC message");
-            new Message(LIST_SCOOTERS, "Nenhuma recompensa nas proximidades").serialize(out);
-        }
-        else{
-            System.out.println("[DEBUG] Sending a LIST_REWARDS message");
-            new Message(LIST_REWARDS, new ListObject(lista.size(), lista)).serialize(out);
-        }
+        return lista;
+
 
 
     }
