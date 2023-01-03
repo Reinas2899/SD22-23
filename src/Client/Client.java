@@ -43,11 +43,14 @@ public class Client {
                     DataInputStream in = new DataInputStream(notiSocket.getInputStream());
                     Message packet = Message.deserialize(in);
                     Object message = packet.getMessage();
-                    System.out.println("[DEBUG] Recieved packet of type " + packet.getType().toString());
+                    System.out.println("[DEBUG] Recieved packet of type " + packet.getType().toString() + " in notification thread");
 
-                    if(packet.getType() == MessageType.NOTIFICATION_MSG){
+                    if (packet.getType() == MessageType.NOTIFICATION_MSG) {
                         if (!(message instanceof ListObject)) break;
                         imprimeRecompensas((ListObject) message);
+                    }
+                    if (packet.getType() == MessageType.DESCONNECTION_RESPONSE) {
+                        break;
                     }
                 }
             } catch (IOException e) {

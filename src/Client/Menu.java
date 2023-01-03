@@ -204,7 +204,6 @@ public class Menu {
        notifications = !notifications;
        if(notifications) client.notificationThread().start();
        else{
-           client.notificationThread().interrupt();
            new Message(DESCONNECTION , null).
                    serialize(new DataOutputStream(client.notiSocket.getOutputStream()));
        }
