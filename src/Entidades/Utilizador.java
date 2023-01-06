@@ -69,6 +69,15 @@ public class Utilizador {
         this.y = y;
     }
 
+    public Localizacao getLocation(){
+        return new Localizacao(x, y, -1);
+    }
+
+    public void setLocation(Localizacao loc){
+        x = loc.getX();
+        y = loc.getY();
+    }
+
     @Override
     public String toString() {
         return "username=" + username +

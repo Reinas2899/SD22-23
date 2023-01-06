@@ -25,7 +25,9 @@ public class Server {
     private static Map<String, Reservation> reservasAtivas = new HashMap<>();
 
     private static Map<Integer, Utilizador> contasAtivas = new HashMap<>(); //<port, user>
-    private Map<Integer, Socket> notificationBros = new HashMap<>(); //<port, socket>
+    private List<Integer> notificationBros = new ArrayList<>(); //<port, socket>
+
+
     private static Lock l = new ReentrantLock();
     private static List<Localizacao> trotinetes = new ArrayList<>();
     private static Map<Localizacao,Integer> recompensas = new HashMap<>();
@@ -54,43 +56,10 @@ public class Server {
         //geraRecompensa(10,10);
         rs.calculateRewards();
         receiveFromClient().start();
-        sendNotifications().start();
 
     }
 
-    private Thread sendNotifications() {
-        return new Thread(() -> {
-            try {
-                while (true) {
-                    for(Integer port : notificationBros.keySet()){
 
-                        DataOutputStream out = new DataOutputStream(notificationBros.get(port).getOutputStream());
-
-                        Utilizador user = contasAtivas.get(port);
-
-                        //TODO localização do user
-                        List<Localizacao> lista = nearbyRecompensa(distanciaUser, new Localizacao(1, 1, -1), out);
-
-                        if(lista.isEmpty()) {
-                            new Message(GENERIC, "Nenhuma recompensa nas proximidades").serialize(out);
-                            System.out.println("[DEBUG] Sending a GENERIC message" + port);
-                        }
-                        else{
-                            new Message(NOTIFICATION_MSG, new ListObject(lista.size(), lista)).serialize(out);
-                            System.out.println("[DEBUG] Sending a NOTIFICATION_MSG message to " + port);
-                        }
-                    }
-
-                    Thread.sleep(10000); // 10 segundos
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-
-        });
-    }
 
 
     private Thread receiveFromClient() throws IOException {
@@ -117,12 +86,15 @@ public class Server {
         return new Thread(() -> {
             try {
                 boolean connected = true;
+                int port = s.getPort();
                 while(connected) {
                     DataInputStream in = new DataInputStream(s.getInputStream());
                     DataOutputStream out = new DataOutputStream(s.getOutputStream());
 
+
                     Message packet = Message.deserialize(in);
                     Object message = packet.getMessage();
+
 
                     System.out.println("[DEBUG] Recieved packet of type " + packet.getType().toString() +
                             " from client " + s.getPort());
@@ -137,40 +109,42 @@ public class Server {
                             // Dado um username e uma password, verificamos se existe e se sim, criamos uma conexão
 
                             if (message instanceof Utilizador loginUser)
-                                login(s.getPort(), loginUser, out);
+                                login(port, loginUser, out);
                         }
                         case DESCONNECTION -> {
-                            logout(s.getPort(), out);
+                            logout(port, out);
                         }
                         case NEARBY_SCOOTERS -> {
                             // Dado a localização do user, damos uma lista de trotinetes perto
                             if (message instanceof Localizacao loc) {
+
+                                Utilizador user = contasAtivas.get(port);
+                                user.setLocation(loc);
+                                contasAtivas.put(port, user);
+
                                 nearbyScooter(distanciaUser, loc, out);
                             }
                         }
                         case NEARBY_REWARDS -> {
                             // Dado a localização do user, damos uma lista de recompensas perto
                             if (message instanceof Localizacao userLocation) {
-                                List<Localizacao> lista = nearbyRecompensa(distanciaUser, userLocation, out);
-                                if(lista.isEmpty()) {
-                                    System.out.println("[DEBUG] Sending a GENERIC message");
-                                    new Message(GENERIC, "Nenhuma recompensa nas proximidades").serialize(out);
-                                }
-                                else{
-                                    System.out.println("[DEBUG] Sending a LIST_REWARDS message");
-                                    new Message(LIST_REWARDS, new ListObject(lista.size(), lista)).serialize(out);
-                                }
+                                Utilizador user = contasAtivas.get(port);
+                                user.setLocation(userLocation);
+                                contasAtivas.put(port, user);
 
-                                //String notificationMessage = "This is a notification";
-                                //String recipient = "recipient@example.com";
-                                //NotificationThread notificationThread = new NotificationThread(notificationMessage, recipient);
-                                //executor.execute(notificationThread);
+                                List<Localizacao> lista = nearbyRecompensa(distanciaUser, userLocation, out);
+                                System.out.println("[DEBUG] Sending a LIST_REWARDS message");
+                                    new Message(LIST_REWARDS, new ListObject(lista.size(), lista)).serialize(out);
+
 
                             }
                         }
                         case SCOOTER_RESERVATION_REQUEST -> {
                             if (message instanceof Localizacao loc) {
-                                reserveScooter(out, s.getPort(), loc);
+                                Utilizador user = contasAtivas.get(port);
+                                user.setLocation(loc);
+                                contasAtivas.put(port, user);
+                                reserveScooter(out, port, loc);
                             }
 
                         }
@@ -179,22 +153,32 @@ public class Server {
                             // código de reserva. Caso nao haja trotinetes, enviamos uma mensagem de insucesso.
 
                             if (message instanceof String res) {
-                                System.out.println("Aqui");
-                                startTrip(res, s.getPort(), out);
+                                startTrip(res, port, out);
                             }
                         }
                         case END_TRIP -> {
                             if (message instanceof ReservationMessage res) {
-                                endTrip(s.getPort(), res, out);
+
+                                Utilizador user = contasAtivas.get(port);
+                                user.setLocation(res.getLocation());
+                                contasAtivas.put(port, user);
+
+                                endTrip(port, res, out);
                             }
                         }
 
                         case TOGGLE_NOTIFICATION -> {
                             // se tiver na lista, quer dizer que ele quer desligar. Se nap tiver, então quer ser juntado
-                            int port = s.getLocalPort();
-                            if (notificationBros.containsKey(port)) notificationBros.remove(port);
-                            else notificationBros.put(port, s);
+                            if (notificationBros.contains(port)) notificationBros.remove(port);
+                            else notificationBros.add(port);
                         }
+                    }
+
+                    if(notificationBros.contains(port) && packet.getType() != LIST_REWARDS){
+                        List<Localizacao> lista =
+                                nearbyRecompensa(distanciaUser, contasAtivas.get(port).getLocation(), out);
+                        System.out.println("[DEBUG] Sending a LIST_REWARDS message");
+                        new Message(LIST_REWARDS, new ListObject(lista.size(), lista)).serialize(out);
                     }
                 }
             } catch (Exception e) {
@@ -430,16 +414,18 @@ public class Server {
             if(reservasAtivas.containsKey(reservationCode) &&
                     reservasAtivas.get(reservationCode).getUser().equals(contasAtivas.get(port).getUsername())) {
                 Reservation reserva = reservasAtivas.get(reservationCode);
+
+                Utilizador user = contasAtivas.get(port);
+                user.setLocation(reserva.getStartLocation());
+                contasAtivas.put(port, user);
+
                 reserva.setStartTime();
                 reservasAtivas.put(reservationCode, reserva);
             }
         } finally {
             // Release the write lock after modifying the list
             writeLock.unlock();
-            System.out.println("Sai");
         }
-       // new Message(SCOOTER_RESERVATION_RESPONSE, message).serialize(out);
-        //System.out.println("[DEBUG] Sending a SCOOTER_RESERVATION_RESPONSE");
     }
 
     /*****************************************************************
@@ -505,14 +491,10 @@ public class Server {
                 lista.add(t);
             }
         }
-        if(lista.isEmpty()) {
-            System.out.println("[DEBUG] Sending a GENERIC message");
-            new Message(GENERIC, "Nenhuma trotinete nas proximidades").serialize(out);
-        }
-        else{
-            System.out.println("[DEBUG] Sending a LIST_SCOOTERS message");
-            new Message(LIST_SCOOTERS, new ListObject(lista.size(), lista)).serialize(out);
-        }
+
+        System.out.println("[DEBUG] Sending a LIST_SCOOTERS message");
+        new Message(LIST_SCOOTERS, new ListObject(lista.size(), lista)).serialize(out);
+
     }
 
     /*****************************************************************

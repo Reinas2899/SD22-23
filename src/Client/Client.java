@@ -16,7 +16,6 @@ public class Client {
     final int localPort;
 
     Socket socket;
-    public Socket notiSocket;
     Menu menu;
 
 
@@ -26,38 +25,15 @@ public class Client {
 
     public Client() throws IOException {
         socket = new Socket("localhost", 4999);
-        notiSocket = new Socket("localhost", 4999);
         menu = new Menu(this);
         this.localPort = socket.getLocalPort();
         System.out.println("identifier: " + localPort);
-        System.out.println("Notification identifier: " + notiSocket.getLocalPort());
         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
         menu.menuSemConta(out);
         receiveFromServer().start();
     }
 
-    public Thread notificationThread(){
-        return new Thread(() -> {
-            try {
-                while (true) {
-                    DataInputStream in = new DataInputStream(notiSocket.getInputStream());
-                    Message packet = Message.deserialize(in);
-                    Object message = packet.getMessage();
-                    System.out.println("[DEBUG] Recieved packet of type " + packet.getType().toString() + " in notification thread");
 
-                    if (packet.getType() == MessageType.NOTIFICATION_MSG) {
-                        if (!(message instanceof ListObject)) break;
-                        imprimeRecompensas((ListObject) message);
-                    }
-                    if (packet.getType() == MessageType.DESCONNECTION_RESPONSE) {
-                        break;
-                    }
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
     private Thread receiveFromServer() {
         return new Thread(() -> {
             while (true) {
@@ -111,15 +87,21 @@ public class Client {
                         case LIST_SCOOTERS:
                             // We just need to print the list so the user can choose
                             if (!(message instanceof ListObject)) break;
+                            ListObject lista = (ListObject) message;
 
-                            imprimeTrotis((ListObject) message);
+                            if(lista.getSize() == 0) System.out.println("Nenhuma recompensa nas proximidades");
+                            else imprimeTrotis(lista);
+
                             menu.menuLogado(out);
                             break;
                         case LIST_REWARDS:
                             // We just need to print the list so the user can choose
                             if (!(message instanceof ListObject)) break;
+                            lista = (ListObject) message;
 
-                            imprimeRecompensas((ListObject) message);
+                            if(lista.getSize() == 0) System.out.println("Nenhuma recompensa nas proximidades");
+                            else imprimeRecompensas(lista);
+
                             menu.menuLogado(out);
                             break;
 

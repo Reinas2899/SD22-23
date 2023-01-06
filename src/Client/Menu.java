@@ -71,10 +71,8 @@ public class Menu {
                 System.out.println("[DEBUG] Sent SCOOTER_RESERVATION_REQUEST to server");
                 break;
             case 4: // Ligar/desligar notificações
-                new Message(TOGGLE_NOTIFICATION, null).
-                        serialize(new DataOutputStream(client.notiSocket.getOutputStream()));
+                new Message(TOGGLE_NOTIFICATION, null).serialize(out);
                 System.out.println("[DEBUG] Sent TOGGLE_NOTIFICATION to server from Notification Socket");
-                chosenNotifications();
                 menuLogado(out);
                 break;
             case 5: // Logout
@@ -92,7 +90,6 @@ public class Menu {
         System.out.println("------------------SD-TP-GRUPO-21--------------");
         System.out.println("|Insira a operação que pretende realizar :   |");
         System.out.println("|1->Terminar viagem                          |");
-        optionNotification(2);
         System.out.println("----------------------------------------------");
 
         // Ler input aqui
@@ -109,13 +106,6 @@ public class Menu {
                 new Message(END_TRIP, new ReservationMessage(reservationCode, loc)).serialize(out);
                 System.out.println("[DEBUG] Sent END_TRIP to server");
                 break;
-            case 2: // Ligar/desligar notificações
-                new Message(TOGGLE_NOTIFICATION, null).
-                        serialize(new DataOutputStream(client.notiSocket.getOutputStream()));
-                System.out.println("[DEBUG] Sent TOGGLE_NOTIFICATION to server from Notification Socket");
-                chosenNotifications();
-                menuViagem(out);
-                break;
             default:
                 System.out.println("Isso não é uma opção válida :/");
                 menuViagem(out);
@@ -128,7 +118,6 @@ public class Menu {
         System.out.println("|Insira a operação que pretende realizar :   |");
         System.out.println("|1->Iniciar Viagem                           |");
         System.out.println("|2->Cancelar Reserva                         |");
-        optionNotification(3);
         System.out.println("----------------------------------------------");
 
         // Ler input aqui
@@ -147,13 +136,6 @@ public class Menu {
             case 2: // Cancelar reserva
                 //TODO Cancelar viagem é preciso um novo no messagetype "CANCEL RESERVATION"
                 System.out.println("É preciso CANCEL_RESERVATION no messageType");
-                break;
-            case 3: // Ligar/desligar notificações
-                new Message(TOGGLE_NOTIFICATION, null).
-                        serialize(new DataOutputStream(client.notiSocket.getOutputStream()));
-                System.out.println("[DEBUG] Sent TOGGLE_NOTIFICATION to server from Notification Socket");
-                chosenNotifications();
-                menuReserve(out);
                 break;
             default:
                 System.out.println("Isso não é uma opção válida :/");
@@ -199,15 +181,6 @@ public class Menu {
             System.out.println("|"+ number + "-> Ligar notificações                      |");
     }
 
-    private static void chosenNotifications() throws IOException {
-
-       notifications = !notifications;
-       if(notifications) client.notificationThread().start();
-       else{
-           new Message(DESCONNECTION , null).
-                   serialize(new DataOutputStream(client.notiSocket.getOutputStream()));
-       }
-    }
 }
 
 
