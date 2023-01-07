@@ -1,12 +1,16 @@
 package Entidades;
 
+import Servidor.Message.ListObject;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class Recompensa {
-    int creditos;
+    double creditos;
     Localizacao l;
 
     @Override
@@ -44,17 +48,17 @@ public class Recompensa {
         this.l = l;
     }
 
-    public int getCreditos() {
+    public double getCreditos() {
         return creditos;
     }
 
-    public void setCreditos(int creditos) {
+    public void setCreditos(double creditos) {
         this.creditos = creditos;
     }
 
     public void serialize(DataOutputStream out) throws IOException {
 
-        out.writeInt(creditos);
+        out.writeDouble(creditos);
         l.serialize(out);
 
         out.flush();
@@ -66,6 +70,9 @@ public class Recompensa {
 
         return new Recompensa(creditos,localizacao);
     }
+
+
+
 
 
 }

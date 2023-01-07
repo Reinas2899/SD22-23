@@ -1,6 +1,7 @@
 package Servidor.Message;
 
 import Entidades.Localizacao;
+import Entidades.Recompensa;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -61,4 +62,6 @@ public class ListObject {
         }
         return new ListObject(size, objects);
     }
-}
+
+
+   }

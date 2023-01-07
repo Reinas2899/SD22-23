@@ -37,7 +37,7 @@ public class Server {
     private static ReadWriteLock rwLock = new ReentrantReadWriteLock();
     private static Lock readLock = rwLock.readLock();
     private static Lock writeLock = rwLock.writeLock();
-    private  static  RewardsSystem rs= new RewardsSystem(trotinetes);
+    private  static  RewardsSystem rs;
 
     private static final int distanciaUser = 5;
     //Lista de threads ativas, aka, clientes/users ativos
@@ -54,7 +54,14 @@ public class Server {
     public Server() throws IOException {
         preencheMapaTroti(numeroTroti);
         //geraRecompensa(10,10);
-        rs.calculateRewards();
+        /*Localizacao res = null;
+        for (Localizacao aux:trotinetes) {
+            if( aux.getNumTrotinetes()>=2) {
+                res = aux;
+                break;
+            }
+
+        }*/
         receiveFromClient().start();
 
     }
@@ -175,10 +182,10 @@ public class Server {
                     }
 
                     if(notificationBros.contains(port) && packet.getType() != LIST_REWARDS){
-                        List<Localizacao> lista =
-                                nearbyRecompensa(distanciaUser, contasAtivas.get(port).getLocation(), out);
+                        List<Recompensa> lista =
+                                rs.getRewardsMap().get(contasAtivas.get(port).getLocation());
                         System.out.println("[DEBUG] Sending a LIST_REWARDS message");
-                        new Message(LIST_REWARDS, new ListObject(lista.size(), lista)).serialize(out);
+                        //new Message(LIST_REWARDS, new ListObject(lista.size(), lista)).serialize(out); // NECESSARIO VER SE CONSEGUIMOS SERIALIZAR UMA LISTA DE RECOMPENSAS
                     }
                 }
             } catch (Exception e) {
