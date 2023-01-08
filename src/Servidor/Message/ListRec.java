@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ListObject {
+public class ListRec {
     public int getSize() {
         return size;
     }
@@ -18,11 +18,11 @@ public class ListObject {
         this.size = size;
     }
 
-    public List<Localizacao> getObjects() {
+    public List<Recompensa> getObjects() {
         return objects;
     }
 
-    public void setObjects(List<Localizacao> objects) {
+    public void setObjects(List<Recompensa> objects) {
         this.objects = objects;
     }
 
@@ -35,32 +35,30 @@ public class ListObject {
     }
 
     private int size;
-    private List<Localizacao> objects;
+    private List<Recompensa> objects;
 
-    public ListObject(int size, List<Localizacao> objects) throws IOException {
+    public ListRec(int size, List<Recompensa> objects) throws IOException {
         this.size = size;
         this.objects = objects;
     }
 
     public void serialize(DataOutputStream out) throws IOException {
         out.writeInt(size);
-        for (Localizacao loc : objects) {
-            out.writeInt(loc.getX());
-            out.writeInt(loc.getY());
-            out.writeInt(loc.getNumTrotinetes());
+        for (Recompensa rec : objects) {
+            rec.serialize(out);
         }
         out.flush();
     }
 
-    public static ListObject deserialize(DataInputStream in) throws IOException {
+    public static ListRec deserialize(DataInputStream in) throws IOException {
         int size = in.readInt();
-        List<Localizacao> objects = new ArrayList<>();
+        List<Recompensa> objects = new ArrayList<>();
 
         for (int i = 0; i < size; i++) {
-            Localizacao c = Localizacao.deserialize(in);
+            Recompensa c = Recompensa.deserialize(in);
             objects.add(c);
         }
-        return new ListObject(size, objects);
+        return new ListRec(size, objects);
     }
 
 

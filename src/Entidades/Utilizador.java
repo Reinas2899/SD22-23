@@ -7,13 +7,13 @@ import java.io.IOException;
 public class Utilizador {
 
     private String username;
-    private int creditos;
+    private double creditos;
     private String password;
     private int x;
     private int y;
 
 
-    public Utilizador(String username, int creditos, String password, int x, int y) {
+    public Utilizador(String username, double creditos, String password, int x, int y) {
         this.username = username;
         this.creditos = creditos;
         this.password = password;
@@ -37,11 +37,11 @@ public class Utilizador {
         this.username = username;
     }
 
-   public int getCreditos() {
+   public double getCreditos() {
         return creditos;
     }
 
-    public void setCreditos(int creditos) {
+    public void setCreditos(double creditos) {
         this.creditos = creditos;
     }
 
@@ -78,6 +78,10 @@ public class Utilizador {
         y = loc.getY();
     }
 
+    public void addCreditos(double creditos){
+        this.creditos += creditos;
+    }
+
     @Override
     public String toString() {
         return "username=" + username +
@@ -96,7 +100,7 @@ public class Utilizador {
         out.writeUTF(username);
 
 
-        out.writeInt(creditos);
+        out.writeDouble(creditos);
         out.writeUTF(password);
         out.writeInt(x);
         out.writeInt(y);
@@ -113,7 +117,7 @@ public class Utilizador {
     //
     public static Utilizador deserialize (DataInputStream in) throws IOException {
         String username = in.readUTF();
-        int creditos = in.readInt();
+        double creditos = in.readDouble();
         String password = in.readUTF();
         int x = in.readInt();
         int y = in.readInt();

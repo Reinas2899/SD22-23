@@ -1,9 +1,7 @@
 package Servidor;
 
 import Entidades.*;
-import Servidor.Message.ListObject;
-import Servidor.Message.Message;
-import Servidor.Message.ReservationMessage;
+import Servidor.Message.*;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -32,7 +30,7 @@ public class Server {
     private static List<Localizacao> trotinetes = new ArrayList<>();
     private static Map<Localizacao,Integer> recompensas = new HashMap<>();
     private static final int tamanhoMapa = 20;
-    private static final int numeroTroti = 100;
+    private static final int numeroTroti = 150;
 
     private static ReadWriteLock rwLock = new ReentrantReadWriteLock();
     private static Lock readLock = rwLock.readLock();
@@ -127,9 +125,15 @@ public class Server {
                                 user.setLocation(userLocation);
                                 contasAtivas.put(port, user);
 
-                                List<Localizacao> lista = nearbyRecompensa(distanciaUser, userLocation, out);
+                                rs = new RewardsSystem(trotinetes, user.getLocation());
+                                rs.calculateRewards();
+
+                                List<Recompensa> lista = rs.getRewardsMap().get(userLocation);
+
+                                if(lista == null) lista = new ArrayList<>();
+
                                 System.out.println("[DEBUG] Sending a LIST_REWARDS message");
-                                    new Message(LIST_REWARDS, new ListObject(lista.size(), lista)).serialize(out);
+                                    new Message(LIST_REWARDS, new ListRec(lista.size(), lista)).serialize(out);
 
 
                             }
@@ -170,34 +174,34 @@ public class Server {
                     }
 
                     if(notificationBros.contains(port) && packet.getType() != NEARBY_REWARDS){
-                        List<Localizacao> lista =
-                                nearbyRecompensa(distanciaUser, contasAtivas.get(port).getLocation(), out);
-                        System.out.println("[DEBUG] Sending a LIST_REWARDS message");
-                        new Message(NOTIFICATION_MSG, new ListObject(lista.size(), lista)).serialize(out);
+                        rs = new RewardsSystem(trotinetes, contasAtivas.get(port).getLocation());
+                        rs.calculateRewards();
+
+                        List<Recompensa> lista = rs.getRewardsMap().get(contasAtivas.get(port).getLocation());
+                        if(lista == null) lista = new ArrayList<>();
+
+                        System.out.println("[DEBUG] Sending a NOTIFICATION_MSG message");
+                        new Message(NOTIFICATION_MSG, new ListRec(lista.size(), lista)).serialize(out);
 
                     }
                 }
             } catch (Exception e) {
                 System.out.println("[ERROR] process thread crashed!");
                 System.out.println(e);
-                System.exit(-1);
             }
         });
     }
 
 
-    public static void criaMapaTroti(int n){
-
-                for (int x = 0; x <= n; x++) {
-                    for (int y = 0; y <= n; y++) {
-                        Localizacao l =new Localizacao(x,y,0);
-                        trotinetes.add(l);
-
-
-                    }
-                }
+    public static void criaMapaTroti(int n)
+    {
+        for (int x = 0; x <= n; x++) {
+            for (int y = 0; y <= n; y++) {
+                Localizacao l =new Localizacao(x,y,0);
+                trotinetes.add(l);
             }
-
+        }
+    }
 
     public static boolean existsUser (String username, String password) throws FileNotFoundException{
         File ficheiro = new File("registos.txt");
@@ -215,42 +219,6 @@ public class Server {
         return false;
     }
 
-
-
-
-
-    public static void setContasAtivas(Map<Integer, Utilizador> contasAtivas) {
-        Server.contasAtivas = contasAtivas;
-    }
-
-    public static void geraRecompensa(int n, int creditos){
-
-        criaMapaRecompensas();
-        int i =1;
-        while(i<=n) {
-            for (Localizacao l: trotinetes) {
-                if(recompensas.get(l)==0){
-                    recompensas.put(l,creditos);
-                }
-                else i--;
-                i++;
-            }
-
-        }
-    }
-
-    public static void criaMapaRecompensas(){
-        recompensas= new HashMap<>();
-        for (int x = 0; x <= tamanhoMapa; x++) {
-            for (int y = 0; y <= tamanhoMapa; y++) {
-                for (Localizacao l: trotinetes) {
-                    if(!recompensas.containsKey(l)) recompensas.put(l, 0);
-                }
-
-            }
-        }
-    }
-
     public static void preencheMapaTroti(int n){
         criaMapaTroti(tamanhoMapa);
         Random random = new Random();
@@ -263,7 +231,6 @@ public class Server {
                 i++;
             }
 
-        //System.out.println(trotinetes);
     }
 
     public static double distanciaLocalizacao(Localizacao l1, Localizacao l2){
@@ -272,7 +239,7 @@ public class Server {
 
     public static float calculaPreco(Reservation reserva){
         float elapsTime = reserva.getEndTime() - reserva.getStartTime();
-        return (float) (elapsTime*0.2);
+        return (float) (elapsTime*0.002);
     }
 
     /*****************************************************************
@@ -317,7 +284,6 @@ public class Server {
     public static void login(Integer port, Utilizador user, DataOutputStream out) throws IOException{
         String message = "Login incorreto!";
 
-        //TODO não é preciso meter isto dentro do lock?
         l.lock();
         try{
             if(existsUser(user.getUsername(), user.getPassword())) {
@@ -344,13 +310,12 @@ public class Server {
      *               3- Envia mensagem de resposta
      *****************************************************************/
     public static void logout(Integer port, DataOutputStream out) throws IOException{
-        //TODO Se houver erros, alterar mensagem
 
-        writeLock.lock();
+        l.lock();
         try {
             contasAtivas.remove(port);
         } finally {
-            writeLock.unlock();
+            l.unlock();
             System.out.println("[DEBUG] Sending a DESCONNECTION_RESPONSE");
             new Message(DESCONNECTION_RESPONSE,"Logout Efetuado com Sucessso").serialize(out);
         }
@@ -452,8 +417,22 @@ public class Server {
                 }
 
                 System.out.println("[DEBUG] Sending a COST_REWARD message");
-                //TODO falta recompensa
-                new Message(COST_REWARD, calculaPreco(reservation)).serialize(out);
+
+                List<Recompensa> destinos = rs.getRewardsMap().get(reservation.getStartLocation());
+                double recompensa = 0;
+                for(Recompensa res : destinos)
+                {
+                    if(res.getDestino().getX() == reserva.getLocation().getX() && res.getDestino().getY() == reserva.getLocation().getY())
+                    {
+                        recompensa = res.getCreditos();
+                    }
+                }
+
+                Utilizador user = contasAtivas.get(port);
+                user.addCreditos(recompensa);
+                contasAtivas.put(port, user);
+
+                new Message(COST_REWARD, new CostReward(calculaPreco(reservation), recompensa)).serialize(out);
             }
             else {
                 System.out.println("[DEBUG] Sending a GENERIC message");
@@ -486,32 +465,9 @@ public class Server {
         }
 
         System.out.println("[DEBUG] Sending a LIST_SCOOTERS message");
-        new Message(LIST_SCOOTERS, new ListObject(lista.size(), lista)).serialize(out);
+        new Message(LIST_SCOOTERS, new ListLoc(lista.size(), lista)).serialize(out);
 
     }
-
-    /*****************************************************************
-     * FUNCTION:     nearbyRecompensa
-     * INPUT:        d (raio de proximidade), l (localização), out
-     * DESCRIPTION:  1- Faz lista de recompensas que estão a um raio
-     *                  de distancia do cliente
-     *               2- Devolve lista ao cliente
-     *****************************************************************/
-    public static List<Localizacao> nearbyRecompensa(int d, Localizacao l, DataOutputStream out) throws IOException {
-        List<Localizacao> lista =new ArrayList<>();
-        double distance;
-        for (Localizacao l1: recompensas.keySet()) {
-
-            distance = distanciaLocalizacao(l1,l);
-            if(distance <=d && recompensas.get(l1)>0){
-                lista.add(l1);
-                lista.add(l1);
-            }
-            if(lista.size() == 6) break;
-        }
-        return lista;
-    }
-
 
 }
 

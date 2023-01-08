@@ -4,12 +4,12 @@ package Client;
 
 import Entidades.Localizacao;
 import Entidades.Utilizador;
-import Servidor.Message.ListObject;
+import Servidor.Message.ListLoc;
+import Servidor.Message.ListRec;
 import Servidor.Message.Message;
 import Servidor.Message.ReservationMessage;
 
 import java.io.*;
-import java.util.List;
 import java.util.Scanner;
 
 import static Servidor.Message.MessageType.*;
@@ -118,7 +118,6 @@ public class Menu {
         System.out.println("------------------SD-TP-GRUPO-21--------------");
         System.out.println("|Insira a operação que pretende realizar :   |");
         System.out.println("|1->Iniciar Viagem                           |");
-        System.out.println("|2->Cancelar Reserva                         |");
         System.out.println("----------------------------------------------");
 
         // Ler input aqui
@@ -134,10 +133,6 @@ public class Menu {
 
                 menuViagem(out);
                 break;
-            case 2: // Cancelar reserva
-                //TODO Cancelar viagem é preciso um novo no messagetype "CANCEL RESERVATION"
-                System.out.println("É preciso CANCEL_RESERVATION no messageType");
-                break;
             default:
                 System.out.println("Isso não é uma opção válida :/");
                 menuReserve(out);
@@ -145,16 +140,15 @@ public class Menu {
         }
     }
 
-    public static void imprimeTrotis(ListObject list){
+    public static void imprimeTrotis(ListLoc list){
         for (int i = 0; i < list.getSize() ; i++) {
             System.out.println(list.getObjects().get(i));
         }
     }
 
-    public static void imprimeRecompensas(ListObject list){
+    public static void imprimeRecompensas(ListRec list){
         for (int i = 0; i < list.getSize() ; i+=2) {
-            System.out.println("(Origem:(" + list.getObjects().get(i)   +
-                           ")) -> (Destino:(" + list.getObjects().get(i+1) + "))");
+            System.out.println(list.getObjects().get(i).toString());
         }
     }
 

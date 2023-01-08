@@ -3,7 +3,6 @@ package Entidades;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 
 public class Trotinete{
 
@@ -52,7 +51,6 @@ public class Trotinete{
     }
 
 
-    // @TODO
     public void serialize (DataOutputStream out) throws IOException {
         out.writeUTF(idTrotinete);
         out.writeBoolean(reservada);
@@ -61,7 +59,6 @@ public class Trotinete{
         out.flush();
     }
 
-    // @TODO
     public static Trotinete deserialize (DataInputStream in) throws IOException {
         String idTrotinete = in.readUTF();
         boolean reservada = in.readBoolean();

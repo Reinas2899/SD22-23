@@ -1,11 +1,5 @@
 package Entidades;
 
-import Servidor.Message.ReservationMessage;
-
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.sql.Timestamp;
 import java.util.Random;
 
 public class Reservation {

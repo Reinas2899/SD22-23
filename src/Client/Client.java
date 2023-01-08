@@ -5,7 +5,6 @@ package Client;
 import Servidor.Message.*;
 
 import java.io.*;
-import java.net.ServerSocket;
 import java.net.Socket;
 
 import static Client.Menu.*;
@@ -84,7 +83,7 @@ public class Client {
 
                         System.out.println(message);
 
-                        if (message.equals("Login Incorreto!") || message.equals("Este user já está logado noutro cliente."))
+                        if (message.equals("Login incorreto!") || message.equals("Este user já está logado noutro cliente."))
                             menu.menuSemConta(out);
                         else menu.menuLogado(out);
 
@@ -97,8 +96,8 @@ public class Client {
                         break;
                     case LIST_SCOOTERS:
                         // We just need to print the list so the user can choose
-                        if (!(message instanceof ListObject)) break;
-                        ListObject lista = (ListObject) message;
+                        if (!(message instanceof ListLoc)) break;
+                        ListLoc lista = (ListLoc) message;
 
                         if(lista.getSize() == 0) System.out.println("Nenhuma recompensa nas proximidades");
                         else imprimeTrotis(lista);
@@ -107,27 +106,29 @@ public class Client {
                         break;
                     case LIST_REWARDS:
                         // We just need to print the list so the user can choose
-                        if (!(message instanceof ListObject)) break;
-                        lista = (ListObject) message;
+                        if (!(message instanceof ListRec)) break;
+                        ListRec listaRec = (ListRec) message;
 
-                        if(lista.getSize() == 0) System.out.println("Nenhuma recompensa nas proximidades");
-                        else imprimeRecompensas(lista);
+                        if(listaRec.getSize() == 0) System.out.println("Nenhuma recompensa nas proximidades");
+                        else imprimeRecompensas(listaRec);
 
                         menu.menuLogado(out);
                         break;
                     case NOTIFICATION_MSG:
                         // We just need to print the list so the user can choose
-                        if (!(message instanceof ListObject)) break;
-                        lista = (ListObject) message;
+                        if (!(message instanceof ListRec)) break;
+                        listaRec = (ListRec) message;
 
-                        if(lista.getSize() == 0) System.out.println("Nenhuma recompensa nas proximidades");
-                        else imprimeRecompensas(lista);
+                        if(listaRec.getSize() == 0) System.out.println("Nenhuma recompensa nas proximidades");
+                        else imprimeRecompensas(listaRec);
 
                         break;
 
                     case COST_REWARD:
-                        if (!(message instanceof Float)) break;
-                        System.out.println("Tens de pagar " + message.toString() + "€");
+                        if (!(message instanceof CostReward)) break;
+                        CostReward cost = (CostReward) message;
+
+                        System.out.println("Tens de pagar " + cost.getCost() + "€ e ganhaste " + cost.getReward() + " créditos.");
                         menu.menuLogado(out);
                         break;
                 }

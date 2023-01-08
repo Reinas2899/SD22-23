@@ -67,7 +67,6 @@ public class Localizacao {
         out.flush();
     }
 
-    // @TODO
     public static Localizacao deserialize (DataInputStream in) throws IOException {
         int x = in.readInt();
         int y = in.readInt();

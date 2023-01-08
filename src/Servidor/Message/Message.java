@@ -38,8 +38,9 @@ public class Message {
             case GENERIC, CONNECTION_RESPONSE, DESCONNECTION_RESPONSE, START_TRIP, SCOOTER_RESERVATION_RESPONSE  -> message =in.readUTF();
             case NEARBY_SCOOTERS, NEARBY_REWARDS,SCOOTER_RESERVATION_REQUEST -> message = Localizacao.deserialize(in);
             case END_TRIP -> message = ReservationMessage.deserialize(in);
-            case LIST_SCOOTERS, LIST_REWARDS, NOTIFICATION_MSG -> message = ListObject.deserialize(in);
-            case COST_REWARD -> message = in.readFloat();
+            case LIST_SCOOTERS -> message = ListLoc.deserialize(in);
+            case LIST_REWARDS, NOTIFICATION_MSG -> message = ListRec.deserialize(in);
+            case COST_REWARD -> message = CostReward.deserialize(in);
             default -> {System.out.println("[DEBUG] IDK this message");}
         }
         return new Message(type, message);
@@ -72,14 +73,17 @@ public class Message {
                     res.serialize(out);
                 break;
             case LIST_SCOOTERS:
+                if(message instanceof ListLoc list)
+                    list.serialize(out);
+                break;
             case LIST_REWARDS:
             case NOTIFICATION_MSG:
-                if(message instanceof ListObject list)
+                if(message instanceof ListRec list)
                     list.serialize(out);
                 break;
             case COST_REWARD:
-                if(message instanceof Float custo)
-                    out.writeFloat(custo);
+                if(message instanceof CostReward custo)
+                    custo.serialize(out);
                 break;
             case DESCONNECTION:
             case TOGGLE_NOTIFICATION:

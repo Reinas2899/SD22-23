@@ -38,7 +38,12 @@
     &quot;last_opened_file_path&quot;: &quot;C:/Users/jbtes/OneDrive/Documentos/GitHub/ProjetoDSSGrupo2&quot;
   }
 }</component>
-  <component name="RunManager" selected="Application.Server">
+  <component name="RecentsManager">
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="Servidor.Message" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Application.Client2">
     <configuration name="Client" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Client.Client" />
       <module name="SD22-23" />
@@ -79,15 +84,15 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.Server" />
         <item itemvalue="Application.Client" />
+        <item itemvalue="Application.Server" />
       </list>
     </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="a194b99e-beb7-4e90-af34-5c81dcd1bf77" name="Changes" comment="" />
+      <changelist id="930b9297-8ec1-41a4-aea0-6d6484a34e47" name="Changes" comment="" />
       <created>1670254572455</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />

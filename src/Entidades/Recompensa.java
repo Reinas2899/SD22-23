@@ -1,51 +1,49 @@
 package Entidades;
 
-import Servidor.Message.ListObject;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 public class Recompensa {
     double creditos;
-    Localizacao l;
+    Localizacao destino;
+    Localizacao origem;
+
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Recompensa that = (Recompensa) o;
-        return creditos == that.creditos && l.equals(that.l);
+        return creditos == that.creditos && destino.equals(that.destino);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(creditos, l);
+        return Objects.hash(creditos, destino);
     }
 
     @Override
     public String toString() {
-        return "Recompensa{" +
-                "creditos=" + creditos +
-                ", l=" + l +
-                '}';
+        return "Reward{ " +
+                "Origem = " + origem.toString() +
+                ", Destino = " + destino.toString() +
+                ", Valor = " + creditos + "}";
     }
 
-    public Recompensa(int creditos, Localizacao l) {
+    public Recompensa(Localizacao ori, Localizacao dest, double creditos) {
         this.creditos = creditos;
-        this.l = l;
-
+        this.destino = dest;
+        this.origem = ori;
     }
 
-    public Localizacao getL() {
-        return l;
+    public Localizacao getDestino() {
+        return destino;
     }
 
-    public void setL(Localizacao l) {
-        this.l = l;
+    public void setDestino(Localizacao destino) {
+        this.destino = destino;
     }
 
     public double getCreditos() {
@@ -58,17 +56,20 @@ public class Recompensa {
 
     public void serialize(DataOutputStream out) throws IOException {
 
+        origem.serialize(out);
+        destino.serialize(out);
         out.writeDouble(creditos);
-        l.serialize(out);
 
         out.flush();
     }
 
     public static Recompensa deserialize(DataInputStream in) throws IOException{
-        int creditos = in.readInt();
-        Localizacao localizacao = new Localizacao(in.readInt(), in.readInt(), in.readInt());
 
-        return new Recompensa(creditos,localizacao);
+        Localizacao origem = Localizacao.deserialize(in);
+        Localizacao destino = Localizacao.deserialize(in);
+        double creditos = in.readDouble();
+
+        return new Recompensa(origem, destino, creditos);
     }
 
 

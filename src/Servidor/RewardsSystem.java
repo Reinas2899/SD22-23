@@ -6,12 +6,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-import java.text.DecimalFormat;
+
 public class RewardsSystem
 {
     private Map<Localizacao, List<Recompensa>> rewardsMap = new HashMap<>();
     private static List<Localizacao> trotinetes;
-    private static Localizacao origem;
+    private static Localizacao userLoc;
 
     public Map<Localizacao, List<Recompensa>> getRewardsMap() {
         return rewardsMap;
@@ -23,9 +23,10 @@ public class RewardsSystem
 
     public RewardsSystem(List<Localizacao> trotinetes, Localizacao origem)
     {
+        System.out.println(origem);
 
         this.trotinetes = trotinetes;
-        this.origem = origem;
+        this.userLoc = origem;
     }
 
 
@@ -44,7 +45,7 @@ public class RewardsSystem
         return LocalCVariasTrotis;
     }
 
-    public List<Localizacao> findLocalSTrotis(Localizacao origem)
+    public List<Localizacao> findLocalSTrotis()
     {
         List<Localizacao> LocalSTrotis = new ArrayList<>();
 
@@ -59,22 +60,6 @@ public class RewardsSystem
         return LocalSTrotis;
     }
 
-
-    public boolean isNearby(Localizacao local1, Localizacao local2)
-    {
-        double maxDistance = 3; // 300 metros
-
-        double x1 = local1.getX();
-        double y1 = local1.getY();
-        double x2 = local2.getX();
-        double y2 = local2.getY();
-
-        double distance = Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
-
-        return distance <= maxDistance;
-    }
-
-
     public void addToRewardsMap(Localizacao origem, List<Recompensa> destinos)
     {
         rewardsMap.put(origem, destinos);
@@ -83,80 +68,71 @@ public class RewardsSystem
 
     public double calculateReward(Localizacao loc)
     {
-
-
         double rewards = 0;
 
         int x = loc.getX();
         int y = loc.getY();
 
-        double distancia = Math.sqrt(Math.pow(x - origem.getX(), 2) + Math.pow(y - origem.getY(), 2));
-
-        rewards = distancia;
-
-
+        rewards = Math.sqrt(Math.pow(x - userLoc.getX(), 2) + Math.pow(y - userLoc.getY(), 2));
+        System.out.println(rewards);
 
         return (int) (rewards * 10);
     }
 
-    public boolean aux(Localizacao l){
+
+    public boolean aux(Localizacao destino){
         double dist= 3;
         int count=0;
         int t =0;
-        for (Localizacao loc:trotinetes)
-        {
 
-            if(Math.sqrt(Math.pow(loc.getX() - l.getX(), 2) + Math.pow(loc.getY() - l.getY(), 2))<=dist)
-            {
+        for (Localizacao loc : trotinetes)
+            if(Math.sqrt(Math.pow(loc.getX() - destino.getX(), 2) + Math.pow(loc.getY() - destino.getY(), 2)) <= dist)
                 t++;
-            }
 
-        }
-
-        for (Localizacao loc:findLocalSTrotis(origem))
-        {
-
-            if(Math.sqrt(Math.pow(loc.getX() - l.getX(), 2) + Math.pow(loc.getY() - l.getY(), 2))<=dist)
-            {
+        for (Localizacao loc : findLocalSTrotis())
+            if(Math.sqrt(Math.pow(loc.getX() - destino.getX(), 2) + Math.pow(loc.getY() - destino.getY(), 2)) <= dist)
                 count++;
 
-            }
 
-        }
         return (count==t) ;
-
     }
 
     public void calculateRewards()
     {
-        List<Localizacao> locaisCtrotis =findLocalCVariasTrotis();
+        List<Localizacao> locaisCtrotis = findLocalCVariasTrotis();
         List<Recompensa> destinos = new ArrayList<>();
+        List<Recompensa> recompensas = new ArrayList<>();
+        List<Localizacao> semTrotis = findLocalSTrotis();
         int i = 0;
 
-        if (locaisCtrotis.contains(origem))
+        for(Localizacao loc : locaisCtrotis)
         {
-            for (i = 0 ; i<findLocalSTrotis(origem).size();i++) {
-                Recompensa res = new Recompensa(0,findLocalSTrotis(origem).get(i));
-                destinos.add(res);
-
-            }
-
-            for (Recompensa res:destinos)
+            if (loc.getX() == userLoc.getX() && loc.getY() == userLoc.getY())
             {
-                if(aux(res.getL()))
+                for (i = 0 ; i < semTrotis.size(); i++)
                 {
-                addToRewardsMap(res.getL(), destinos);
-                double rewards = calculateReward(res.getL());
-                res.setCreditos(rewards);
-                System.out.println("Recompensas para a localização x:" + res.getL().getX()+" y:"+ res.getL().getY() + "  recompensa:" + rewards);
+                    Recompensa res = new Recompensa(loc, semTrotis.get(i), calculateReward(semTrotis.get(i)));
+                    destinos.add(res);
                 }
 
+                for (Recompensa res : destinos)
+                {
+                    if (aux(res.getDestino()))
+                    {
+                        recompensas.add(res);
+                        System.out.println("Recompensas para a localização x:" + res.getDestino().getX()+
+                                " y:"+ res.getDestino().getY() +
+                                " recompensa:" + res.getCreditos());
+                    }
+
+                }
+
+                addToRewardsMap(userLoc, recompensas);
+                break;
             }
+
         }
-        else
-        {
-            System.out.println("Não tem rewards.");
-        }
+
     }
 
 }
