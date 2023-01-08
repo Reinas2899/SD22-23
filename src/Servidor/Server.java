@@ -53,20 +53,8 @@ public class Server {
 
     public Server() throws IOException {
         preencheMapaTroti(numeroTroti);
-        //geraRecompensa(10,10);
-        /*Localizacao res = null;
-        for (Localizacao aux:trotinetes) {
-            if( aux.getNumTrotinetes()>=2) {
-                res = aux;
-                break;
-            }
-
-        }*/
         receiveFromClient().start();
-
     }
-
-
 
 
     private Thread receiveFromClient() throws IOException {
@@ -289,7 +277,7 @@ public class Server {
 
     /*****************************************************************
      * FUNCTION:     registaUser
-     * INPUT:        user
+     * INPUT:        user (informações do cliente)
      * DESCRIPTION:  1- Guarda o user no ficheiro que contem contas,
      *                  caso ainda não exista
      *               2- Envia mensagem de resposta
@@ -351,7 +339,7 @@ public class Server {
 
     /*****************************************************************
      * FUNCTION:     logout
-     * INPUT:        username
+     * INPUT:        port (cliente)
      * DESCRIPTION:  1- Remove-se user das contas ativas
      *               3- Envia mensagem de resposta
      *****************************************************************/
@@ -370,7 +358,7 @@ public class Server {
 
     /*****************************************************************
      * FUNCTION:     reserveScooter
-     * INPUT:        newReserva (username e localização inicial)
+     * INPUT:        out, port (cliente), localização (do cliente)
      * DESCRIPTION:  1- Faz uma nova reserva com um código aleatório
      *               2- Verifica se há trotinetes livres na localização
      *               3- Retira uma trotinete dessa localização

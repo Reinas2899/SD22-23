@@ -60,7 +60,6 @@ public class Client {
                 switch (packet.getType()) {
                     case GENERIC:
                         if (! (message instanceof String)) break;
-                        System.out.println("AQUI");
                         System.out.println(message);
 
                         if (message.equals("Registo feito!")|| message.equals("Utilizador já existe!"))
