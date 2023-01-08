@@ -73,6 +73,7 @@ public class Menu {
             case 4: // Ligar/desligar notificações
                 new Message(TOGGLE_NOTIFICATION, null).serialize(out);
                 System.out.println("[DEBUG] Sent TOGGLE_NOTIFICATION to server from Notification Socket");
+                notifications = !notifications;
                 menuLogado(out);
                 break;
             case 5: // Logout

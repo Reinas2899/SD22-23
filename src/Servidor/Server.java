@@ -181,11 +181,12 @@ public class Server {
                         }
                     }
 
-                    if(notificationBros.contains(port) && packet.getType() != LIST_REWARDS){
-                        List<Recompensa> lista =
-                                rs.getRewardsMap().get(contasAtivas.get(port).getLocation());
+                    if(notificationBros.contains(port) && packet.getType() != NEARBY_REWARDS){
+                        List<Localizacao> lista =
+                                nearbyRecompensa(distanciaUser, contasAtivas.get(port).getLocation(), out);
                         System.out.println("[DEBUG] Sending a LIST_REWARDS message");
-                        //new Message(LIST_REWARDS, new ListObject(lista.size(), lista)).serialize(out); // NECESSARIO VER SE CONSEGUIMOS SERIALIZAR UMA LISTA DE RECOMPENSAS
+                        new Message(NOTIFICATION_MSG, new ListObject(lista.size(), lista)).serialize(out);
+
                     }
                 }
             } catch (Exception e) {
@@ -195,7 +196,6 @@ public class Server {
             }
         });
     }
-
 
 
     public static void criaMapaTroti(int n){
@@ -209,7 +209,6 @@ public class Server {
                     }
                 }
             }
-
 
 
     public static boolean existsUser (String username, String password) throws FileNotFoundException{
@@ -370,14 +369,13 @@ public class Server {
     }
 
     /*****************************************************************
-     * FUNCTION:     reserveT
+     * FUNCTION:     reserveScooter
      * INPUT:        newReserva (username e localização inicial)
      * DESCRIPTION:  1- Faz uma nova reserva com um código aleatório
      *               2- Verifica se há trotinetes livres na localização
      *               3- Retira uma trotinete dessa localização
      *               4- Envia mensagem de resposta
      *****************************************************************/
-
     private static void reserveScooter( DataOutputStream out, Integer port, Localizacao localizacao) throws IOException {
         //start time is automatically put here
         //reservation code too
@@ -407,11 +405,10 @@ public class Server {
 
     /*****************************************************************
      * FUNCTION:     startTrip
-     * INPUT:        newReserva (username e localização inicial)
-     * DESCRIPTION:  1- Faz uma nova reserva com um código aleatório
-     *               2- Verifica se há trotinetes livres na localização
-     *               3- Retira uma trotinete dessa localização
-     *               4- Envia mensagem de resposta
+     * INPUT:        reservationCode, port (cliente), out
+     * DESCRIPTION:  1- Verifica se reserva já existe a partir do código
+     *                  de reserva e do port
+     *               2- Atualiza tempo e localização de começo
      *****************************************************************/
     private static void startTrip(String reservationCode, Integer port, DataOutputStream out) throws IOException {
 
@@ -437,7 +434,8 @@ public class Server {
 
     /*****************************************************************
      * FUNCTION:     endTrip
-     * INPUT:        reserva (código de reserva e localização final)
+     * INPUT:        port (cliente), reserva (código de reserva e
+     *               localização final), out
      * DESCRIPTION:  1- Verifica se código de reserva é válido
      *               2- Remover reserva das reservas ativas
      *               3- Adicionar trotinete à localização
@@ -482,7 +480,7 @@ public class Server {
 
     /*****************************************************************
      * FUNCTION:     nearbyScooter
-     * INPUT:        raio de proximidade, localização
+     * INPUT:        d (raio de proximidade), l (localização), out
      * DESCRIPTION:  1- Faz lista de trotinetes que estão a um raio
      *                  de distancia do cliente
      *               2- Devolve lista ao cliente
@@ -506,16 +504,13 @@ public class Server {
 
     /*****************************************************************
      * FUNCTION:     nearbyRecompensa
-     * INPUT:        raio de proximidade, localização
+     * INPUT:        d (raio de proximidade), l (localização), out
      * DESCRIPTION:  1- Faz lista de recompensas que estão a um raio
      *                  de distancia do cliente
      *               2- Devolve lista ao cliente
      *****************************************************************/
     public static List<Localizacao> nearbyRecompensa(int d, Localizacao l, DataOutputStream out) throws IOException {
         List<Localizacao> lista =new ArrayList<>();
-        //TODO Isto está mal
-        // recompensas são pares origem destino em que se fizer esse caminho, então recebe um bonus
-        // podemos fazer que se houver 0 trotinetes num lado e 2 ou mais noutro, que é uma recompensa
         double distance;
         for (Localizacao l1: recompensas.keySet()) {
 
@@ -527,10 +522,9 @@ public class Server {
             if(lista.size() == 6) break;
         }
         return lista;
-
-
-
     }
+
+
 }
 
 

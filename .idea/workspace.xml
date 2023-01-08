@@ -4,18 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="930b9297-8ec1-41a4-aea0-6d6484a34e47" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/SD22-23/Entidades/Recompensa.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/SD22-23/Servidor/Message/ListObject.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/SD22-23/Servidor/RewardsSystem.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/SD22-23/Servidor/RewardsSystem.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/SD22-23/Servidor/Server$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/SD22-23/Servidor/Server$1.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/SD22-23/Servidor/Server.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/SD22-23/Servidor/Server.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Entidades/Recompensa.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Entidades/Recompensa.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Servidor/Message/ListObject.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Servidor/Message/ListObject.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Servidor/RewardsSystem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Servidor/RewardsSystem.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Servidor/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Servidor/Server.java" afterDir="false" />
-    </list>
+    <list default="true" id="930b9297-8ec1-41a4-aea0-6d6484a34e47" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
