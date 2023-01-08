@@ -168,21 +168,26 @@ public class Server {
 
                         case TOGGLE_NOTIFICATION -> {
                             // se tiver na lista, quer dizer que ele quer desligar. Se nap tiver, então quer ser juntado
-                            if (notificationBros.contains(port)) notificationBros.remove(port);
+                            if (notificationBros.contains(port)){
+                                for(int i = 0; i < notificationBros.size(); i++){
+                                    if (notificationBros.get(i) == port){
+                                        notificationBros.remove(i);
+                                        break;
+                                    }
+                                }
+                            }
                             else notificationBros.add(port);
                         }
                     }
 
-                    if(notificationBros.contains(port) && packet.getType() != NEARBY_REWARDS){
+                    if(notificationBros.contains(port) &&
+                            packet.getType() != NEARBY_REWARDS &&
+                            packet.getType() != TOGGLE_NOTIFICATION &&
+                            packet.getType() != START_TRIP &&
+                            packet.getType() != DESCONNECTION )
+                    {
                         rs = new RewardsSystem(trotinetes, contasAtivas.get(port).getLocation());
-                        rs.calculateRewards();
-
-                        List<Recompensa> lista = rs.getRewardsMap().get(contasAtivas.get(port).getLocation());
-                        if(lista == null) lista = new ArrayList<>();
-
-                        System.out.println("[DEBUG] Sending a NOTIFICATION_MSG message");
-                        new Message(NOTIFICATION_MSG, new ListRec(lista.size(), lista)).serialize(out);
-
+                        rewardThread(rs, out, port).start();
                     }
                 }
             } catch (Exception e) {
@@ -192,6 +197,22 @@ public class Server {
         });
     }
 
+
+    private Thread rewardThread(RewardsSystem rs, DataOutputStream out, int port) {
+        return new Thread(() -> {
+            try {
+                rs.calculateRewards();
+                List<Recompensa> lista = rs.getRewardsMap().get(contasAtivas.get(port).getLocation());
+                if(lista == null) lista = new ArrayList<>();
+
+                System.out.println("[DEBUG] Sending a NOTIFICATION_MSG message");
+                new Message(NOTIFICATION_MSG, new ListRec(lista.size(), lista)).serialize(out);
+            } catch (Exception e) {
+            System.out.println("[ERROR] process thread crashed!");
+            System.out.println(e);
+        }
+        });
+    }
 
     public static void criaMapaTroti(int n)
     {

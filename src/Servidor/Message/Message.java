@@ -41,6 +41,7 @@ public class Message {
             case LIST_SCOOTERS -> message = ListLoc.deserialize(in);
             case LIST_REWARDS, NOTIFICATION_MSG -> message = ListRec.deserialize(in);
             case COST_REWARD -> message = CostReward.deserialize(in);
+            case TOGGLE_NOTIFICATION -> message = null;
             default -> {System.out.println("[DEBUG] IDK this message");}
         }
         return new Message(type, message);
