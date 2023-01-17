@@ -23,8 +23,6 @@ public class RewardsSystem
 
     public RewardsSystem(List<Localizacao> trotinetes, Localizacao origem)
     {
-        System.out.println(origem);
-
         this.trotinetes = trotinetes;
         this.userLoc = origem;
     }
@@ -62,6 +60,7 @@ public class RewardsSystem
 
     public void addToRewardsMap(Localizacao origem, List<Recompensa> destinos)
     {
+        System.out.println("ADD to Rewards");
         rewardsMap.put(origem, destinos);
     }
 
@@ -74,7 +73,7 @@ public class RewardsSystem
         int y = loc.getY();
 
         rewards = Math.sqrt(Math.pow(x - userLoc.getX(), 2) + Math.pow(y - userLoc.getY(), 2));
-        System.out.println(rewards);
+
 
         return (int) (rewards * 10);
     }
@@ -120,9 +119,6 @@ public class RewardsSystem
                     if (aux(res.getDestino()))
                     {
                         recompensas.add(res);
-                        System.out.println("Recompensas para a localização x:" + res.getDestino().getX()+
-                                " y:"+ res.getDestino().getY() +
-                                " recompensa:" + res.getCreditos());
                     }
 
                 }

@@ -30,13 +30,12 @@ public class Server {
     private static List<Localizacao> trotinetes = new ArrayList<>();
     private static Map<Localizacao,Integer> recompensas = new HashMap<>();
     private static final int tamanhoMapa = 20;
-    private static final int numeroTroti = 150;
+    private static final int numeroTroti = 50;
 
     private static ReadWriteLock rwLock = new ReentrantReadWriteLock();
     private static Lock readLock = rwLock.readLock();
     private static Lock writeLock = rwLock.writeLock();
     private  static  RewardsSystem rs;
-
     private static final int distanciaUser = 5;
     //Lista de threads ativas, aka, clientes/users ativos
     static int numThreads = 5;
@@ -51,6 +50,7 @@ public class Server {
 
     public Server() throws IOException {
         preencheMapaTroti(numeroTroti);
+
         receiveFromClient().start();
     }
 
@@ -161,6 +161,9 @@ public class Server {
                                 Utilizador user = contasAtivas.get(port);
                                 user.setLocation(res.getLocation());
                                 contasAtivas.put(port, user);
+
+                                rs = new RewardsSystem(trotinetes, user.getLocation());
+                                rs.calculateRewards();
 
                                 endTrip(port, res, out);
                             }
@@ -416,9 +419,6 @@ public class Server {
      *               4- Calcular e enviar custo e recompensas ao cliente
      *****************************************************************/
     private static void endTrip(Integer port, ReservationMessage reserva, DataOutputStream out) throws IOException {
-        System.out.println(reserva.getInformation());
-        System.out.println(reservasAtivas.get(reserva.getInformation()).getUser());
-        System.out.println(contasAtivas.get(port).getUsername());
         writeLock.lock();
         try
         {
@@ -438,22 +438,33 @@ public class Server {
                 }
 
                 System.out.println("[DEBUG] Sending a COST_REWARD message");
-
-                List<Recompensa> destinos = rs.getRewardsMap().get(reservation.getStartLocation());
-                double recompensa = 0;
-                for(Recompensa res : destinos)
-                {
-                    if(res.getDestino().getX() == reserva.getLocation().getX() && res.getDestino().getY() == reserva.getLocation().getY())
-                    {
-                        recompensa = res.getCreditos();
+                Localizacao aux=null;
+                for (Localizacao l:trotinetes) {
+                    if (l.getX() == reservation.getEndLocation().getX() && l.getY()== reservation.getEndLocation().getY()){
+                        aux=l;
                     }
                 }
+                System.out.println(rs.getRewardsMap());
+                List<Recompensa> destinos = rs.getRewardsMap().get(aux);
 
-                Utilizador user = contasAtivas.get(port);
-                user.addCreditos(recompensa);
-                contasAtivas.put(port, user);
+                double recompensa = 0;
+                if(destinos != null) {
+                    for (Recompensa res : destinos) {
+                        if (res.getDestino().getX() == reserva.getLocation().getX() && res.getDestino().getY() == reserva.getLocation().getY()) {
+                            recompensa = res.getCreditos();
+                        }
+                    }
+                    Utilizador user = contasAtivas.get(port);
+                    user.addCreditos(recompensa);
+                    contasAtivas.put(port, user);
+                    new Message(COST_REWARD, new CostReward(calculaPreco(reservation), recompensa)).serialize(out);
 
-                new Message(COST_REWARD, new CostReward(calculaPreco(reservation), recompensa)).serialize(out);
+                } else{
+                    System.out.println("[DEBUG] Sending a GENERIC message");
+                    new Message(COST_REWARD, new CostReward(calculaPreco(reservation), recompensa)).serialize(out);
+                }
+
+
             }
             else {
                 System.out.println("[DEBUG] Sending a GENERIC message");
