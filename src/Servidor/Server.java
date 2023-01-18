@@ -444,7 +444,6 @@ public class Server {
                         aux=l;
                     }
                 }
-                System.out.println(rs.getRewardsMap());
                 List<Recompensa> destinos = rs.getRewardsMap().get(aux);
 
                 double recompensa = 0;
